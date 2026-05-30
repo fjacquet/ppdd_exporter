@@ -18,6 +18,6 @@ type ResourceCollector interface {
 func Registry() []ResourceCollector {
 	return []ResourceCollector{
 		Capacity{},
-		// Phase 2: MTrees{}, Phase 3: Replication{}, Phase 4: Health{}
+		MTrees{},
 	}
 }

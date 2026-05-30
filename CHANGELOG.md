@@ -9,3 +9,4 @@ All notable changes to this project are documented here. The format is based on
 ### Added
 - Scaffold: Go module, Makefile, CLI skeleton.
 - Core snapshot pipeline, token-auth client, config + hot reload, `/metrics` + `/health`, capacity & dedup metrics.
+- Added per-MTree usage, compression, and quota metrics.
