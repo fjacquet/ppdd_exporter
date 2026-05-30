@@ -1,0 +1,15 @@
+---
+server:
+  host: "0.0.0.0"
+  port: "9099"
+  uri: "/metrics"
+  logName: ""            # "" -> stdout
+collection:
+  interval: "5m"
+  timeout: "60s"
+systems:
+  - name: dd-prod-01
+    host: dd01.example.com
+    username: ppdd-monitor
+    password: "${DD01_PASSWORD}"
+    insecureSkipVerify: true
