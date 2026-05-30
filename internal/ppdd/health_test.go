@@ -12,9 +12,9 @@ func loadHealthMock(t *testing.T) *ddclient.Mock {
 	t.Helper()
 	m := ddclient.NewMock("dd01")
 	for path, file := range map[string]string{
-		"/api/v1/dd-systems/0/hardware/disks":        "testdata/disks.json",
-		"/api/v1/dd-systems/0/alerts":                "testdata/alerts.json",
-		"/api/v1/dd-systems/0/stats/system-stats":    "testdata/system-stats.json",
+		"/api/v1/dd-systems/0/hardware/disks":     "testdata/disks.json",
+		"/api/v1/dd-systems/0/alerts":             "testdata/alerts.json",
+		"/api/v1/dd-systems/0/stats/system-stats": "testdata/system-stats.json",
 	} {
 		b, err := os.ReadFile(file)
 		if err != nil {
