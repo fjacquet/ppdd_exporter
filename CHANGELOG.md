@@ -6,6 +6,11 @@ All notable changes to this project are documented here. The format is based on
 
 ## [Unreleased]
 
+### Fixed
+- `/health` now correctly reports unhealthy systems: `OK` is set to `false` (and `Err` populated) when all collectors fail to produce any data for a system, instead of always reporting healthy.
+- `passwordFile` contents are now trimmed of surrounding whitespace (e.g. trailing newline from `echo`) before being used as the system password, preventing silent authentication failures.
+- Config watcher startup errors are now logged as warnings instead of being silently swallowed, making misconfiguration easier to diagnose.
+
 ### Added
 - Scaffold: Go module, Makefile, CLI skeleton.
 - Core snapshot pipeline, token-auth client, config + hot reload, `/metrics` + `/health`, capacity & dedup metrics.

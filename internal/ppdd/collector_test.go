@@ -56,3 +56,35 @@ func TestCollectSystemDegradesOnError(t *testing.T) {
 		t.Fatalf("ppdd_collector_up{capacity} = %v, want 0", up)
 	}
 }
+
+func TestCollectSystemNotOKWhenAllFail(t *testing.T) {
+	m := ddclient.NewMock("dd01") // no paths registered -> every collector errors
+	store := NewSnapshotStore()
+	col := NewCollector([]ddclient.Client{m}, Registry(), store, time.Minute, 10*time.Second)
+	snap := col.CollectOnce(context.Background())
+
+	sys := snap.Systems[0]
+	if sys.OK {
+		t.Fatal("expected OK=false when all collectors fail")
+	}
+	if sys.Err == "" {
+		t.Fatal("expected non-empty Err when all collectors fail")
+	}
+}
+
+func TestCollectSystemOKWhenAnyCollectorSucceeds(t *testing.T) {
+	m := ddclient.NewMock("dd01")
+	// Only register the capacity endpoint so capacity succeeds and others fail.
+	m.SetJSON("/api/v1/dd-systems/0/file-system", `{"physical_used_bytes":5}`)
+	store := NewSnapshotStore()
+	col := NewCollector([]ddclient.Client{m}, Registry(), store, time.Minute, 10*time.Second)
+	snap := col.CollectOnce(context.Background())
+
+	sys := snap.Systems[0]
+	if !sys.OK {
+		t.Fatalf("expected OK=true when at least one collector succeeds, got Err=%q", sys.Err)
+	}
+	if sys.Err != "" {
+		t.Fatalf("expected empty Err when at least one collector succeeds, got %q", sys.Err)
+	}
+}

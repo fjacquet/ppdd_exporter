@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"strings"
 	"time"
 
 	"gopkg.in/yaml.v2"
@@ -77,7 +78,7 @@ func Load(path string) (*Config, error) {
 			if err != nil {
 				return nil, fmt.Errorf("system %s passwordFile: %w", s.Name, err)
 			}
-			s.Password = string(b)
+			s.Password = strings.TrimSpace(string(b))
 		}
 	}
 	if cfg.Server.Port == "" {

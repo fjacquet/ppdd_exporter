@@ -2,6 +2,7 @@ package ppdd
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/fjacquet/ppdd_exporter/internal/ddclient"
@@ -64,11 +65,16 @@ func (c *Collector) collectSystem(ctx context.Context, client ddclient.Client) *
 	defer cancel()
 
 	ss := &SystemSnapshot{System: client.Name(), LastScrape: time.Now(), OK: true}
+	failures := 0
+	var lastErr error
+	domainSamples := 0
 	for _, rc := range c.collectors {
 		samples, err := rc.Collect(ctx, client)
 		up := 1.0
 		if err != nil {
 			up = 0
+			failures++
+			lastErr = err
 			log.WithFields(log.Fields{"system": client.Name(), "collector": rc.Name(), "err": err}).
 				Warn("collector failed")
 		}
@@ -79,7 +85,12 @@ func (c *Collector) collectSystem(ctx context.Context, client ddclient.Client) *
 		}.WithSystem(client.Name()))
 		for _, s := range samples {
 			ss.Samples = append(ss.Samples, s.WithSystem(client.Name()))
+			domainSamples++
 		}
+	}
+	if len(c.collectors) > 0 && (failures == len(c.collectors) || domainSamples == 0) {
+		ss.OK = false
+		ss.Err = fmt.Sprintf("all %d collectors failed: %v", len(c.collectors), lastErr)
 	}
 	return ss
 }

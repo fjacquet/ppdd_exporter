@@ -39,3 +39,27 @@ func TestLoadRejectsEmptySystems(t *testing.T) {
 		t.Fatal("expected error when no systems configured")
 	}
 }
+
+func TestLoadTrimsPasswordFile(t *testing.T) {
+	dir := t.TempDir()
+	// Password file with trailing newline (as written by echo)
+	pwFile := filepath.Join(dir, "password.txt")
+	if err := os.WriteFile(pwFile, []byte("s3cret\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	cfgPath := filepath.Join(dir, "config.yaml")
+	yaml := `
+systems:
+  - {name: dd01, host: dd01.example.com, username: u, passwordFile: ` + pwFile + `}
+`
+	if err := os.WriteFile(cfgPath, []byte(yaml), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	cfg, err := Load(cfgPath)
+	if err != nil {
+		t.Fatalf("Load: %v", err)
+	}
+	if cfg.Systems[0].Password != "s3cret" {
+		t.Fatalf("password = %q, want %q (no trailing newline)", cfg.Systems[0].Password, "s3cret")
+	}
+}

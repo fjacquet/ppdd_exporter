@@ -80,6 +80,8 @@ func run(cfgPath string, once, debug bool) error {
 					Info("config reloaded (restart to apply system/client changes)")
 			}
 		}()
+	} else {
+		log.WithError(err).Warn("config watcher disabled (failed to start)")
 	}
 
 	reg := prometheus.NewRegistry()
