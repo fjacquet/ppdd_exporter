@@ -20,13 +20,21 @@ published mock image).
 
 ## Run it
 
-From the repo root:
+From the repo root (requires a running Docker daemon, and Docker Compose v2 — use
+`docker compose`, not the older hyphenated `docker-compose`):
 
 ```bash
-# Build the exporter from source:
-docker compose -f deploy/compose/docker-compose.build.yml up --build
+make demo          # build the exporter from source
+make demo-ghcr     # …or run the published image instead
+make demo-down     # stop and remove both stacks
+```
 
-# …or run the published image instead:
+Equivalently, the raw commands (note the `-f` — the compose files are under
+`deploy/compose/`, not the repo root, which is why a bare `docker compose up` reports
+"no configuration file provided"):
+
+```bash
+docker compose -f deploy/compose/docker-compose.build.yml up --build
 docker compose -f deploy/compose/docker-compose.ghcr.yml up
 # pin a tag: PPDD_IMAGE_TAG=v0.1.0 docker compose -f deploy/compose/docker-compose.ghcr.yml up
 ```
