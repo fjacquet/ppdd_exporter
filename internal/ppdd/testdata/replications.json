@@ -1,0 +1,12 @@
+{
+  "replication": [
+    {
+      "source": "dd01:/data/col1/backup1",
+      "destination": "dd02:/data/col1/backup1",
+      "state": "normal",
+      "sync_lag_seconds": 120,
+      "precomp_bytes_remaining": 2048,
+      "throughput_bytes_per_second": 1048576
+    }
+  ]
+}
