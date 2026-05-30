@@ -1,0 +1,40 @@
+name: Release
+on:
+  push:
+    tags: ['v*']
+permissions:
+  contents: write
+  packages: write
+jobs:
+  binaries:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        goos: [linux, darwin]
+        goarch: [amd64, arm64]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with: { go-version: '1.26' }
+      - name: Build
+        env: { GOOS: '${{ matrix.goos }}', GOARCH: '${{ matrix.goarch }}' }
+        run: |
+          CGO_ENABLED=0 go build -ldflags "-X main.version=${GITHUB_REF_NAME}" \
+            -o ppdd_exporter_${{ matrix.goos }}_${{ matrix.goarch }} .
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: ppdd_exporter_${{ matrix.goos }}_${{ matrix.goarch }}
+  image:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v6
+        with:
+          push: true
+          tags: ghcr.io/fjacquet/ppdd_exporter:${{ github.ref_name }},ghcr.io/fjacquet/ppdd_exporter:latest
+          build-args: VERSION=${{ github.ref_name }}

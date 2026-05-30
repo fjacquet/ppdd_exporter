@@ -1,0 +1,20 @@
+{
+  "replication": [
+    {
+      "source": "dd-prod-01:/data/col1/backup-sql",
+      "destination": "dd-dr-01:/data/col1/backup-sql",
+      "state": "normal",
+      "sync_lag_seconds": 95,
+      "precomp_bytes_remaining": 5368709120,
+      "throughput_bytes_per_second": 134217728
+    },
+    {
+      "source": "dd-prod-01:/data/col1/backup-vmware",
+      "destination": "dd-dr-01:/data/col1/backup-vmware",
+      "state": "lagging",
+      "sync_lag_seconds": 4200,
+      "precomp_bytes_remaining": 219902325555,
+      "throughput_bytes_per_second": 88080384
+    }
+  ]
+}

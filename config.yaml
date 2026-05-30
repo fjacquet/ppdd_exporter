@@ -1,0 +1,18 @@
+---
+server:
+  host: "0.0.0.0"
+  port: "9099"
+  uri: "/metrics"
+  logName: ""            # "" -> stdout
+collection:
+  interval: "5m"
+  timeout: "60s"
+systems:
+  - name: dd-prod-01
+    host: dd01.example.com
+    username: ppdd-monitor
+    password: "${DD01_PASSWORD}"
+    # insecureSkipVerify disables TLS certificate verification (man-in-the-middle
+    # risk). Leave it off in production; only enable for dev/test against a DD with
+    # a self-signed cert (see config.demo.yaml, which targets the mockdd appliance).
+    # insecureSkipVerify: true
