@@ -72,6 +72,16 @@ func run(cfgPath string, once, debug bool) error {
 	}
 	go col.Run(ctx)
 
+	if w, err := config.NewWatcher(cfgPath); err == nil {
+		defer w.Close()
+		go func() {
+			for newCfg := range w.Updates() {
+				log.WithField("systems", len(newCfg.Systems)).
+					Info("config reloaded (restart to apply system/client changes)")
+			}
+		}()
+	}
+
 	reg := prometheus.NewRegistry()
 	reg.MustRegister(ppdd.NewPromCollector(store))
 
