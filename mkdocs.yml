@@ -1,0 +1,21 @@
+site_name: ppdd_exporter
+site_description: Prometheus exporter for Dell PowerProtect DD (Data Domain) appliances
+repo_url: https://github.com/fjacquet/ppdd_exporter
+exclude_docs: |
+  superpowers/
+theme:
+  name: material
+  features: [navigation.sections, navigation.top, content.code.copy]
+markdown_extensions:
+  - admonition
+  - pymdownx.highlight
+  - pymdownx.superfences
+nav:
+  - Home: index.md
+  - Getting started:
+      - Installation: getting-started/installation.md
+      - Configuration: getting-started/configuration.md
+      - Quick start: getting-started/quickstart.md
+  - Metrics reference: metrics.md
+  - Deployment:
+      - Docker: deployment/docker.md
