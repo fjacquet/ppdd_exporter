@@ -1,0 +1,61 @@
+---
+# Pull-based stack: runs the published GHCR image instead of building the exporter.
+#
+#   docker compose -f docker-compose.ghcr.yml up
+#
+# Pin a version with PPDD_TAG (defaults to :latest):
+#   PPDD_TAG=0.1.0 docker compose -f docker-compose.ghcr.yml up
+#
+# Refresh images later with:  docker compose -f docker-compose.ghcr.yml pull
+#
+# mockdd is still built locally — there is no published mock image; it exists only
+# for this demo so the dashboard populates without real hardware.
+services:
+  mockdd:
+    build:
+      context: .
+      dockerfile: deploy/mockdd/Dockerfile
+    image: ppdd_mockdd
+    pull_policy: build
+    container_name: ppdd_mockdd
+    restart: unless-stopped
+
+  ppdd_exporter:
+    image: ghcr.io/fjacquet/ppdd_exporter:${PPDD_TAG:-latest}
+    container_name: ppdd_exporter
+    command: ["--config", "/etc/ppdd_exporter/config.yaml"]
+    ports:
+      - "9099:9099"
+    volumes:
+      - ./config.demo.yaml:/etc/ppdd_exporter/config.yaml:ro
+    depends_on:
+      - mockdd
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: ppdd_prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    depends_on:
+      - ppdd_exporter
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: ppdd_grafana
+    ports:
+      - "3000:3000"
+    environment:
+      # Test-stack credentials (admin / admin). Change for anything non-local.
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+    depends_on:
+      - prometheus
+    restart: unless-stopped

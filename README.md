@@ -25,13 +25,12 @@ make demo          # exporter built from source
 make demo-ghcr     # …or the published image; make demo-down to stop
 ```
 
-(Equivalently, from the repo root:
-`docker compose -f deploy/compose/docker-compose.build.yml up --build`. Requires a running
+(Equivalently, from the repo root: `docker compose up --build`. Requires a running
 Docker daemon; use `docker compose`, not the older `docker-compose`.)
 
 Then open Grafana at <http://localhost:3000> (admin/admin) → **“PowerProtect DD — Overview”**.
 See [docs/deployment/compose-demo.md](docs/deployment/compose-demo.md). The dashboard JSON is
-[`grafana/ppdd-overview.json`](grafana/ppdd-overview.json).
+[`grafana/dashboards/ppdd-overview.json`](grafana/dashboards/ppdd-overview.json).
 
 ## Metric domains
 
