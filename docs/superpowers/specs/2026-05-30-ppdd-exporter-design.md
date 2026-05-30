@@ -118,8 +118,8 @@ server:
   logName: "/var/log/ppdd_exporter/ppdd-exporter.log"   # "" -> stdout
 
 collection:
-  interval: "30s"          # DD stats are slow-moving; 30s is ample
-  timeout: "20s"           # per-system collection timeout
+  interval: "5m"           # DD stats are slow-moving; 5 min is ample
+  timeout: "60s"           # per-system collection timeout
 
 systems:
   - name: dd-prod-01
