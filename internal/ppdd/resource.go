@@ -20,5 +20,6 @@ func Registry() []ResourceCollector {
 		Capacity{},
 		MTrees{},
 		Replication{},
+		Health{},
 	}
 }

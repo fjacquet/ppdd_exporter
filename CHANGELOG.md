@@ -11,3 +11,4 @@ All notable changes to this project are documented here. The format is based on
 - Core snapshot pipeline, token-auth client, config + hot reload, `/metrics` + `/health`, capacity & dedup metrics.
 - Added per-MTree usage, compression, and quota metrics.
 - Added replication context metrics (state, sync lag, backlog, throughput).
+- Added health & ops metrics (disk state, active alerts by severity, system CPU/throughput).

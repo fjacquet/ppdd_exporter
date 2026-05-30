@@ -1,0 +1,4 @@
+{ "disk": [
+  { "id": "1a", "state": "ok" },
+  { "id": "1b", "state": "failed" }
+] }

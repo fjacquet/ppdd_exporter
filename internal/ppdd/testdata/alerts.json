@@ -1,0 +1,5 @@
+{ "alert": [
+  { "id": "a1", "severity": "warning" },
+  { "id": "a2", "severity": "critical" },
+  { "id": "a3", "severity": "critical" }
+] }
