@@ -9,7 +9,10 @@ import (
 )
 
 func TestMTreesCollect(t *testing.T) {
-	body, _ := os.ReadFile("testdata/mtrees.json")
+	body, err := os.ReadFile("testdata/mtrees.json")
+	if err != nil {
+		t.Fatalf("read fixture: %v", err)
+	}
 	m := ddclient.NewMock("dd01")
 	m.SetJSON("/api/v1/dd-systems/0/mtrees", string(body))
 

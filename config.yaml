@@ -12,4 +12,7 @@ systems:
     host: dd01.example.com
     username: ppdd-monitor
     password: "${DD01_PASSWORD}"
-    insecureSkipVerify: true
+    # insecureSkipVerify disables TLS certificate verification (man-in-the-middle
+    # risk). Leave it off in production; only enable for dev/test against a DD with
+    # a self-signed cert (see config.demo.yaml, which targets the mockdd appliance).
+    # insecureSkipVerify: true

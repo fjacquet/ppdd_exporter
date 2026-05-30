@@ -88,9 +88,13 @@ func (c *Collector) collectSystem(ctx context.Context, client ddclient.Client) *
 			domainSamples++
 		}
 	}
-	if len(c.collectors) > 0 && (failures == len(c.collectors) || domainSamples == 0) {
+	switch {
+	case len(c.collectors) > 0 && failures == len(c.collectors):
 		ss.OK = false
 		ss.Err = fmt.Sprintf("all %d collectors failed: %v", len(c.collectors), lastErr)
+	case len(c.collectors) > 0 && domainSamples == 0:
+		ss.OK = false
+		ss.Err = fmt.Sprintf("no domain samples collected (failures: %d/%d)", failures, len(c.collectors))
 	}
 	return ss
 }

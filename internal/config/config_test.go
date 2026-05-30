@@ -31,6 +31,23 @@ systems:
 	}
 }
 
+func TestLoadFailsOnMissingEnvRef(t *testing.T) {
+	// DD01_PASSWORD is intentionally unset: an unresolved ${VAR} must be a load
+	// error, not a silent empty password that fails auth later.
+	dir := t.TempDir()
+	path := filepath.Join(dir, "config.yaml")
+	yaml := `
+systems:
+  - {name: dd01, host: dd01.example.com, username: u, password: "${DD01_PASSWORD}"}
+`
+	if err := os.WriteFile(path, []byte(yaml), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := Load(path); err == nil {
+		t.Fatal("expected error when a referenced env var is unset")
+	}
+}
+
 func TestLoadRejectsEmptySystems(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "c.yaml")

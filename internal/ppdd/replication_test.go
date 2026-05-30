@@ -9,7 +9,10 @@ import (
 )
 
 func TestReplicationCollect(t *testing.T) {
-	body, _ := os.ReadFile("testdata/replications.json")
+	body, err := os.ReadFile("testdata/replications.json")
+	if err != nil {
+		t.Fatalf("read fixture: %v", err)
+	}
 	m := ddclient.NewMock("dd01")
 	m.SetJSON("/api/v1/dd-systems/0/replications", string(body))
 

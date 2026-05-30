@@ -45,7 +45,11 @@ func TestSystemClientAuthAndGet(t *testing.T) {
 		Name: "dd01", BaseURL: srv.URL, Username: "u", Password: "p",
 		InsecureSkipVerify: true, HTTPClient: srv.Client(),
 	})
-	defer c.Close()
+	t.Cleanup(func() {
+		if err := c.Close(); err != nil {
+			t.Errorf("SystemClient.Close: %v", err)
+		}
+	})
 
 	var out struct {
 		PhysicalUsed float64 `json:"physical_used"`
@@ -89,7 +93,11 @@ func TestSystemClientReloginOn401(t *testing.T) {
 	defer srv.Close()
 
 	c := NewSystemClient(Config{Name: "dd01", BaseURL: srv.URL, HTTPClient: srv.Client()})
-	defer c.Close()
+	t.Cleanup(func() {
+		if err := c.Close(); err != nil {
+			t.Errorf("SystemClient.Close: %v", err)
+		}
+	})
 	var out map[string]any
 	if err := c.Get(context.Background(), "/api/v1/dd-systems/0/file-system", &out); err != nil {
 		t.Fatalf("Get: %v", err)

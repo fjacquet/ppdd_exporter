@@ -6,10 +6,22 @@ All notable changes to this project are documented here. The format is based on
 
 ## [Unreleased]
 
+### Security
+- The default `config.yaml` no longer enables `insecureSkipVerify` (it is commented out with a warning). Disabling TLS certificate verification exposes the connection to man-in-the-middle attacks and is now opt-in only; the Compose demo keeps it in `config.demo.yaml` where it is needed for `mockdd`.
+
 ### Fixed
 - `/health` now correctly reports unhealthy systems: `OK` is set to `false` (and `Err` populated) when all collectors fail to produce any data for a system, instead of always reporting healthy.
 - `passwordFile` contents are now trimmed of surrounding whitespace (e.g. trailing newline from `echo`) before being used as the system password, preventing silent authentication failures.
 - Config watcher startup errors are now logged as warnings instead of being silently swallowed, making misconfiguration easier to diagnose.
+- Config loading now **fails fast** when a `${VAR}` password reference points at an unset environment variable, instead of silently collapsing to an empty password that fails authentication at runtime.
+- The DD client retry predicate no longer panics on transport/TLS errors: resty passes a `nil` response in that case, which the old `r.StatusCode() >= 500` check dereferenced. Such errors are now retried.
+- The collection error message distinguishes "all N collectors failed" from "no domain samples collected", instead of mislabelling the zero-sample case as a total failure.
+- `mockdd` fixture endpoints now reject non-GET methods (`405`) and the startup banner logs a reachable `https://localhost:3009` instead of the bind address.
+
+### Changed
+- Config hot reload now **applies** changes instead of only logging them: a successful reload rebuilds and swaps the DD clients and collection loop in place (picking up `systems` and `collection` interval/timeout changes), while `server` host/port/uri changes are flagged as restart-required. The shared snapshot keeps `/metrics` and `/health` serving across the swap.
+- The config watcher now follows the parent directory instead of the file inode, so atomic "write-temp + rename" config updates (used by many editors and config managers) still trigger a reload.
+- `make ci` now includes the `cli` build step, matching the documented CI gate (gofmt + vet + race tests + build).
 
 ### Added
 - Scaffold: Go module, Makefile, CLI skeleton.

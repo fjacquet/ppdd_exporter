@@ -37,9 +37,14 @@ func NewSystemClient(cfg Config) *SystemClient {
 	} else if cfg.InsecureSkipVerify {
 		rc.SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true}) //nolint:gosec // operator opt-in
 	}
-	// Retry, but never on 4xx (do not retry auth/permission failures).
-	rc.SetRetryCount(2).AddRetryCondition(func(r *resty.Response, _ error) bool {
-		return r.StatusCode() >= 500
+	// Retry on transport errors and 5xx, but never on 4xx (do not retry
+	// auth/permission failures). resty passes r == nil on transport/TLS errors,
+	// so guard the dereference to avoid a panic.
+	rc.SetRetryCount(2).AddRetryCondition(func(r *resty.Response, err error) bool {
+		if err != nil {
+			return true
+		}
+		return r != nil && r.StatusCode() >= 500
 	})
 	return &SystemClient{cfg: cfg, rc: rc}
 }

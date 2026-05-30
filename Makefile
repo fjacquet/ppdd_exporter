@@ -13,7 +13,7 @@ vet:
 fmt-check:
 	@test -z "$$(gofmt -l . | tee /dev/stderr)"
 sure: fmt-check vet test cli
-ci: fmt-check vet test-race
+ci: fmt-check vet test-race cli
 
 # End-to-end demo stacks (mockdd -> exporter -> Prometheus -> Grafana).
 # Grafana: http://localhost:3000 (admin/admin). Requires a running Docker daemon.

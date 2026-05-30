@@ -54,10 +54,23 @@ type Config struct {
 
 var envRef = regexp.MustCompile(`\$\{([A-Za-z_][A-Za-z0-9_]*)\}`)
 
-func interpolate(s string) string {
-	return envRef.ReplaceAllStringFunc(s, func(m string) string {
-		return os.Getenv(envRef.FindStringSubmatch(m)[1])
+// interpolate replaces every ${VAR} in s with its environment value, returning an
+// error if any referenced variable is unset. Failing fast turns a typo'd secret
+// name into a config-load error instead of repeated runtime auth failures.
+func interpolate(s string) (string, error) {
+	var missing []string
+	out := envRef.ReplaceAllStringFunc(s, func(m string) string {
+		name := envRef.FindStringSubmatch(m)[1]
+		v, ok := os.LookupEnv(name)
+		if !ok {
+			missing = append(missing, name)
+		}
+		return v
 	})
+	if len(missing) > 0 {
+		return "", fmt.Errorf("unset environment variable(s): %s", strings.Join(missing, ", "))
+	}
+	return out, nil
 }
 
 // Load reads, interpolates ${ENV} references, applies defaults, and validates.
@@ -72,7 +85,11 @@ func Load(path string) (*Config, error) {
 	}
 	for i := range cfg.Systems {
 		s := &cfg.Systems[i]
-		s.Password = interpolate(s.Password)
+		pw, err := interpolate(s.Password)
+		if err != nil {
+			return nil, fmt.Errorf("system %s password: %w", s.Name, err)
+		}
+		s.Password = pw
 		if s.PasswordFile != "" && s.Password == "" {
 			b, err := os.ReadFile(s.PasswordFile)
 			if err != nil {

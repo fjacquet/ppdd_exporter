@@ -55,6 +55,11 @@ func main() {
 	for path, file := range routes {
 		file := file
 		mux.HandleFunc(path, func(w http.ResponseWriter, r *http.Request) {
+			if r.Method != http.MethodGet {
+				w.Header().Set("Allow", http.MethodGet)
+				w.WriteHeader(http.StatusMethodNotAllowed)
+				return
+			}
 			if r.Header.Get("X-DD-AUTH-TOKEN") != mockToken {
 				w.WriteHeader(http.StatusUnauthorized)
 				return
@@ -78,7 +83,7 @@ func main() {
 			Certificates: []tls.Certificate{mustSelfSignedCert()},
 		},
 	}
-	log.Println("mockdd: serving fake DD API on https://0.0.0.0:3009")
+	log.Println("mockdd: serving fake DD API on https://localhost:3009")
 	log.Fatal(srv.ListenAndServeTLS("", ""))
 }
 

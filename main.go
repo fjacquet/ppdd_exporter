@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"os/signal"
+	"sync"
 	"syscall"
 	"time"
 
@@ -46,38 +47,50 @@ func run(cfgPath string, once, debug bool) error {
 	if err != nil {
 		return err
 	}
-	clients := make([]ddclient.Client, 0, len(cfg.Systems))
-	for _, s := range cfg.Systems {
-		clients = append(clients, ddclient.NewSystemClient(ddclient.Config{
-			Name: s.Name, BaseURL: s.BaseURL(), Username: s.Username,
-			Password: s.Password, InsecureSkipVerify: s.InsecureSkipVerify,
-		}))
-	}
-	defer func() {
-		for _, c := range clients {
-			_ = c.Close()
-		}
-	}()
 
 	store := ppdd.NewSnapshotStore()
-	col := ppdd.NewCollector(clients, ppdd.Registry(), store, cfg.Collection.Interval, cfg.Collection.Timeout)
-
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
-	log.Info("running initial collection cycle")
-	col.CollectOnce(ctx)
 	if once {
+		clients := buildClients(cfg)
+		col := ppdd.NewCollector(clients, ppdd.Registry(), store, cfg.Collection.Interval, cfg.Collection.Timeout)
+		log.Info("running initial collection cycle")
+		col.CollectOnce(ctx)
+		for _, c := range clients {
+			_ = c.Close()
+		}
 		return nil
 	}
-	go col.Run(ctx)
+
+	// runner owns the live collection loop and its clients so config reloads can
+	// rebuild and swap them in place. The SnapshotStore is shared and never
+	// replaced, so /metrics and /health keep serving across a swap.
+	runner := newCollectorRunner(store)
+	defer runner.stop()
+	log.Info("running initial collection cycle")
+	runner.apply(ctx, cfg)
 
 	if w, err := config.NewWatcher(cfgPath); err == nil {
-		defer w.Close()
+		defer func() { _ = w.Close() }()
 		go func() {
-			for newCfg := range w.Updates() {
-				log.WithField("systems", len(newCfg.Systems)).
-					Info("config reloaded (restart to apply system/client changes)")
+			serverCfg := cfg.Server
+			for {
+				select {
+				case <-ctx.Done():
+					return
+				case newCfg, ok := <-w.Updates():
+					if !ok {
+						return
+					}
+					runner.apply(ctx, newCfg)
+					entry := log.WithField("systems", len(newCfg.Systems))
+					if newCfg.Server != serverCfg {
+						entry.Warn("config reloaded and applied; server host/port/uri changed — restart to apply those")
+					} else {
+						entry.Info("config reloaded and applied")
+					}
+				}
 			}
 		}()
 	} else {
@@ -109,6 +122,75 @@ func run(cfgPath string, once, debug bool) error {
 		return err
 	}
 	return nil
+}
+
+// collectorRunner owns the live collection loop and its DD clients so a config
+// reload can rebuild and swap them atomically. apply() is serialized by the single
+// watcher goroutine (plus the one startup call), so it needs no caller-side locking;
+// the mutex only guards the swap against a concurrent stop() at shutdown.
+type collectorRunner struct {
+	store   *ppdd.SnapshotStore
+	mu      sync.Mutex
+	clients []ddclient.Client
+	cancel  context.CancelFunc
+	wg      sync.WaitGroup
+}
+
+func newCollectorRunner(store *ppdd.SnapshotStore) *collectorRunner {
+	return &collectorRunner{store: store}
+}
+
+// apply stops any running loop, then builds clients + a collector from cfg, runs one
+// immediate cycle (so new systems appear without waiting a full interval), and starts
+// the background loop.
+func (r *collectorRunner) apply(parent context.Context, cfg *config.Config) {
+	r.shutdownCurrent()
+
+	clients := buildClients(cfg)
+	col := ppdd.NewCollector(clients, ppdd.Registry(), r.store, cfg.Collection.Interval, cfg.Collection.Timeout)
+	loopCtx, cancel := context.WithCancel(parent)
+
+	r.mu.Lock()
+	r.clients, r.cancel = clients, cancel
+	r.mu.Unlock()
+
+	col.CollectOnce(loopCtx)
+	r.wg.Add(1)
+	go func() {
+		defer r.wg.Done()
+		col.Run(loopCtx)
+	}()
+}
+
+// shutdownCurrent cancels the running loop, waits for it to exit, and closes its
+// clients. Safe to call when nothing is running.
+func (r *collectorRunner) shutdownCurrent() {
+	r.mu.Lock()
+	cancel, clients := r.cancel, r.clients
+	r.cancel, r.clients = nil, nil
+	r.mu.Unlock()
+
+	if cancel != nil {
+		cancel()
+	}
+	r.wg.Wait()
+	for _, c := range clients {
+		_ = c.Close()
+	}
+}
+
+func (r *collectorRunner) stop() { r.shutdownCurrent() }
+
+// buildClients constructs one DD client per configured system.
+func buildClients(cfg *config.Config) []ddclient.Client {
+	clients := make([]ddclient.Client, 0, len(cfg.Systems))
+	for _, s := range cfg.Systems {
+		clients = append(clients, ddclient.NewSystemClient(ddclient.Config{
+			Name: s.Name, BaseURL: s.BaseURL(), Username: s.Username,
+			Password: s.Password, InsecureSkipVerify: s.InsecureSkipVerify,
+		}))
+	}
+	return clients
 }
 
 func healthHandler(w http.ResponseWriter, store *ppdd.SnapshotStore) {
