@@ -37,7 +37,9 @@
 | `internal/ppdd/health.go` | Health & ops module |
 | `internal/ppdd/prometheus.go` | Unchecked Prometheus collector over the snapshot |
 | `internal/ppdd/testdata/*.json` | Provisional fixtures |
-| `Dockerfile`, `.github/workflows/*` | Packaging & CI (Phase 5) |
+| `Dockerfile`, `.github/workflows/*` | Packaging & CI/Pages/release (Phase 5) |
+| `mkdocs.yml`, `docs/index.md`, `docs/getting-started/*`, `docs/deployment/*`, `docs/metrics.md` | MkDocs Material site (Phase 5) |
+| `README.md`, `CLAUDE.md`, `LICENSE`, `CHANGELOG.md` | Project docs, conventions, license, changelog |
 
 ---
 
@@ -98,12 +100,35 @@ ci: fmt-check vet test-race
 Run: `go build ./... && go run . `
 Expected: prints `ppdd_exporter dev`
 
-- [ ] **Step 5: Commit**
+- [ ] **Step 5: Create `CHANGELOG.md` (Keep a Changelog + SemVer)**
+
+Maintained from the start; each phase adds entries under `[Unreleased]`, and a release cuts a
+dated version section.
+
+```markdown
+# Changelog
+
+All notable changes to this project are documented here. The format is based on
+[Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to
+[Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+### Added
+- Scaffold: Go module, Makefile, CLI skeleton.
+```
+
+- [ ] **Step 6: Commit**
 
 ```bash
-git add go.mod Makefile main.go
+git add go.mod Makefile main.go CHANGELOG.md
 git commit -m "chore: scaffold ppdd_exporter module"
 ```
+
+> **Standing convention (applies to every task below):** when a task adds or changes a
+> user-visible feature, add a one-line entry under `CHANGELOG.md` `[Unreleased]` and include
+> `CHANGELOG.md` in that task's `git add`. Each phase gate verifies the changelog reflects the
+> phase's work.
 
 ---
 
@@ -1687,7 +1712,7 @@ git add internal/config/watcher.go internal/config/watcher_test.go main.go go.mo
 git commit -m "feat(config): SIGHUP + file-watch hot reload"
 ```
 
-**Phase 1 gate:** `make ci` is green; `/metrics` serves `ppdd_filesystem_*`, `ppdd_compression_*`, and `ppdd_collector_up` for each configured system.
+**Phase 1 gate:** `make ci` is green; `/metrics` serves `ppdd_filesystem_*`, `ppdd_compression_*`, and `ppdd_collector_up` for each configured system. Add a `CHANGELOG.md` `[Unreleased]` entry: "Core snapshot pipeline, token-auth client, config + hot reload, `/metrics` + `/health`, capacity & dedup metrics."
 
 ---
 
@@ -1834,6 +1859,8 @@ git add internal/ppdd/mtrees.go internal/ppdd/mtrees_test.go internal/ppdd/testd
 git commit -m "feat(ppdd): MTrees module (usage, compression, quotas)"
 ```
 
+**Phase 2 gate:** add a `CHANGELOG.md` `[Unreleased]` entry: "Added per-MTree usage, compression, and quota metrics." Commit it with the module.
+
 ---
 
 ## Phase 3 — Replication module
@@ -1966,6 +1993,8 @@ Expected: PASS
 git add internal/ppdd/replication.go internal/ppdd/replication_test.go internal/ppdd/testdata/replications.json internal/ppdd/resource.go
 git commit -m "feat(ppdd): replication module (state, lag, backlog, throughput)"
 ```
+
+**Phase 3 gate:** add a `CHANGELOG.md` `[Unreleased]` entry: "Added replication context metrics (state, sync lag, backlog, throughput)." Commit it with the module.
 
 ---
 
@@ -2265,7 +2294,7 @@ git add internal/ppdd/labels_test.go internal/ppdd/fixtures_test.go
 git commit -m "test(ppdd): guard label-key consistency across collectors"
 ```
 
-**Phase 4 gate:** `make ci` green; all four domains emit metrics; label-consistency guard passes.
+**Phase 4 gate:** `make ci` green; all four domains emit metrics; label-consistency guard passes. Add a `CHANGELOG.md` `[Unreleased]` entry: "Added health & ops metrics (disk state, active alerts by severity, system CPU/throughput)."
 
 ---
 
@@ -2441,7 +2470,344 @@ git add README.md docs/metrics.md LICENSE
 git commit -m "docs: README, metrics reference, and Apache-2.0 license"
 ```
 
-**Phase 5 gate:** image builds, CI green, README + metrics reference present.
+---
+
+### Task 19: MkDocs Material documentation site
+
+**Files:**
+- Create: `mkdocs.yml`, `docs/index.md`, `docs/getting-started/installation.md`, `docs/getting-started/configuration.md`, `docs/getting-started/quickstart.md`, `docs/deployment/docker.md`
+- Note: `docs/metrics.md` already exists (Task 18) and is linked into the nav.
+
+> The site mirrors `pflex_exporter`'s docs structure. Build it locally with
+> `uvx --with mkdocs-material --with pymdown-extensions mkdocs build --strict`.
+
+- [ ] **Step 1: Create `mkdocs.yml`**
+
+```yaml
+site_name: ppdd_exporter
+site_description: Prometheus exporter for Dell PowerProtect DD (Data Domain) appliances
+repo_url: https://github.com/fjacquet/ppdd_exporter
+theme:
+  name: material
+  features: [navigation.sections, navigation.top, content.code.copy]
+markdown_extensions:
+  - admonition
+  - pymdownx.highlight
+  - pymdownx.superfences
+nav:
+  - Home: index.md
+  - Getting started:
+      - Installation: getting-started/installation.md
+      - Configuration: getting-started/configuration.md
+      - Quick start: getting-started/quickstart.md
+  - Metrics reference: metrics.md
+  - Deployment:
+      - Docker: deployment/docker.md
+```
+
+- [ ] **Step 2: Create `docs/index.md`**
+
+```markdown
+# ppdd_exporter
+
+A Go Prometheus exporter for **Dell PowerProtect DD (Data Domain)** appliances. One process
+monitors many DD systems, polls each on an interval, publishes an immutable snapshot, and
+serves metrics at `/metrics`. Modeled on `pflex_exporter` (Prometheus-only; OTLP deferred).
+
+- **Snapshot model** — one background loop decouples DD API load from scrape count.
+- **Modular collectors** — capacity & dedup, MTrees, replication, health & ops.
+- **Per-module health** — `ppdd_collector_up{collector="..."}` reports each module's status.
+
+!!! warning "Provisional API mappings"
+    DD REST API field mappings are modeled from Dell docs (DD OS 8.3) and are being validated
+    against live appliances.
+
+See [Installation](getting-started/installation.md) and the [Metrics reference](metrics.md).
+```
+
+- [ ] **Step 3: Create `docs/getting-started/installation.md`**
+
+```markdown
+# Installation
+
+## Binary
+
+```bash
+make cli
+./bin/ppdd_exporter --version
+```
+
+## Docker
+
+```bash
+docker build -t ppdd_exporter:dev .
+docker run --rm -p 9099:9099 \
+  -e DD01_PASSWORD=secret \
+  -v "$PWD/config.yaml:/etc/ppdd_exporter/config.yaml:ro" \
+  ppdd_exporter:dev
+```
+
+Requires Go 1.26+ to build from source.
+```
+
+- [ ] **Step 4: Create `docs/getting-started/configuration.md`**
+
+```markdown
+# Configuration
+
+The exporter reads a YAML file (default `config.yaml`). Passwords support `${ENV_VAR}`
+interpolation or a `passwordFile` reference.
+
+```yaml
+server:
+  host: "0.0.0.0"
+  port: "9099"
+  uri: "/metrics"
+  logName: ""            # "" -> stdout
+collection:
+  interval: "5m"          # DD stats are slow-moving
+  timeout: "60s"          # per-system collection timeout
+systems:
+  - name: dd-prod-01
+    host: dd01.example.com  # :3009 implied
+    username: ppdd-monitor  # a read-only/monitor DD user suffices
+    password: "${DD01_PASSWORD}"
+    insecureSkipVerify: true
+```
+
+| Key | Default | Notes |
+|---|---|---|
+| `server.port` | `9099` | metrics/health port |
+| `collection.interval` | `5m` | poll cadence |
+| `collection.timeout` | `60s` | per-system timeout |
+| `systems[].port` | `3009` | DD REST API port |
+
+Config reloads on **SIGHUP** or file change (restart to apply system/client changes).
+```
+
+- [ ] **Step 5: Create `docs/getting-started/quickstart.md`**
+
+```markdown
+# Quick start
+
+```bash
+make cli
+export DD01_PASSWORD='your-monitor-password'
+./bin/ppdd_exporter --config config.yaml
+# metrics: http://localhost:9099/metrics
+# health:  http://localhost:9099/health
+```
+
+Run a single cycle (useful for validation): `./bin/ppdd_exporter --once --debug`.
+
+Then point Prometheus at the target:
+
+```yaml
+scrape_configs:
+  - job_name: ppdd
+    scrape_interval: 5m      # match collection.interval; data only refreshes that often
+    static_configs:
+      - targets: ['localhost:9099']
+```
+```
+
+- [ ] **Step 6: Create `docs/deployment/docker.md`**
+
+```markdown
+# Docker deployment
+
+The image is distroless and runs as a non-root user.
+
+```bash
+docker run -d --name ppdd_exporter -p 9099:9099 \
+  -e DD01_PASSWORD=secret \
+  -v /etc/ppdd_exporter/config.yaml:/etc/ppdd_exporter/config.yaml:ro \
+  ghcr.io/fjacquet/ppdd_exporter:latest
+```
+
+Health and metrics are on the same port (`/health`, `/metrics`).
+```
+
+- [ ] **Step 7: Build the site**
+
+Run: `uvx --with mkdocs-material --with pymdown-extensions mkdocs build --strict`
+Expected: builds with no warnings (strict mode fails on broken links).
+
+- [ ] **Step 8: Update README to link the docs site, and add a CHANGELOG entry**
+
+Add to `README.md` under the title: `Full docs: built with MkDocs Material (see \`mkdocs.yml\`).`
+Add to `CHANGELOG.md` `[Unreleased]` → `### Added`: "MkDocs documentation site."
+
+- [ ] **Step 9: Commit**
+
+```bash
+git add mkdocs.yml docs/index.md docs/getting-started/ docs/deployment/ README.md CHANGELOG.md
+git commit -m "docs: MkDocs Material documentation site"
+```
+
+---
+
+### Task 20: Docs (Pages) + Release workflows
+
+**Files:**
+- Create: `.github/workflows/docs.yml`, `.github/workflows/release.yml`
+
+> `docs.yml` publishes the MkDocs site to GitHub Pages; `release.yml` builds binaries and a
+> GHCR image on `v*` tags. Pin actions to current major versions and confirm tags exist
+> before bumping (Node-20 action runtimes are deprecated).
+
+- [ ] **Step 1: Write `.github/workflows/docs.yml`**
+
+```yaml
+name: Docs
+on:
+  push:
+    branches: [main]
+    paths: ['docs/**', 'mkdocs.yml', '.github/workflows/docs.yml']
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v8.1.0
+      - name: Build site
+        run: uvx --with mkdocs-material --with pymdown-extensions mkdocs build --strict
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with: { path: site }
+      - uses: actions/deploy-pages@v4
+```
+
+- [ ] **Step 2: Write `.github/workflows/release.yml`**
+
+```yaml
+name: Release
+on:
+  push:
+    tags: ['v*']
+permissions:
+  contents: write
+  packages: write
+jobs:
+  binaries:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        goos: [linux, darwin]
+        goarch: [amd64, arm64]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with: { go-version: '1.26' }
+      - name: Build
+        env: { GOOS: '${{ matrix.goos }}', GOARCH: '${{ matrix.goarch }}' }
+        run: |
+          CGO_ENABLED=0 go build -ldflags "-X main.version=${GITHUB_REF_NAME}" \
+            -o ppdd_exporter_${{ matrix.goos }}_${{ matrix.goarch }} .
+      - uses: softprops/action-gh-release@v2
+        with: { files: ppdd_exporter_${{ matrix.goos }}_${{ matrix.goarch }} }
+  image:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v6
+        with:
+          push: true
+          tags: ghcr.io/fjacquet/ppdd_exporter:${{ github.ref_name }},ghcr.io/fjacquet/ppdd_exporter:latest
+          build-args: VERSION=${{ github.ref_name }}
+```
+
+- [ ] **Step 3: Validate workflow YAML**
+
+Run: `python3 -c "import yaml,sys; [yaml.safe_load(open(f)) for f in ['.github/workflows/docs.yml','.github/workflows/release.yml']]; print('ok')"`
+Expected: prints `ok`.
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add .github/workflows/docs.yml .github/workflows/release.yml
+git commit -m "ci: Pages docs deploy and tagged release (binaries + GHCR image)"
+```
+
+---
+
+### Task 21: Project `CLAUDE.md`
+
+**Files:**
+- Create: `CLAUDE.md`
+
+> Repo guidance for future contributors/agents, capturing the load-bearing conventions.
+
+- [ ] **Step 1: Write `CLAUDE.md`**
+
+```markdown
+# CLAUDE.md
+
+Guidance for working in `ppdd_exporter`.
+
+## Commands
+- `make cli` — build `bin/ppdd_exporter`.
+- `make test` / `make test-race` — tests.
+- `make ci` — gofmt check + vet + race tests + build (the CI gate).
+- Run: `./bin/ppdd_exporter --config config.yaml [--once] [--debug]`. Secrets are `${ENV}`
+  refs in `config.yaml` (or `passwordFile`).
+- Docs: `uvx --with mkdocs-material --with pymdown-extensions mkdocs build --strict`.
+
+## Architecture
+Prometheus exporter for Dell PowerProtect DD. A background **collection loop**
+(`internal/ppdd/collector.go`) polls every system on `collection.interval` and publishes an
+immutable **snapshot** to a `SnapshotStore` (RWMutex pointer-swap). The `/metrics` handler
+(`prometheus.go`, an *unchecked* collector) reads the latest snapshot, decoupling DD API load
+from scrape count. `main.go` wires the server, loop, hot reload, and `/health`.
+
+Collection is **modular**: each domain implements `ResourceCollector` (`resource.go`) — owns
+its endpoint path, JSON struct, and `parse → []Sample`. Modules: `capacity`, `mtrees`,
+`replication`, `health`. A module failure degrades to `ppdd_collector_up{collector}=0`, never
+crashing the cycle.
+
+## Conventions (load-bearing)
+- **Provisional API mappings.** Endpoint paths/fields are modeled from Dell docs only — confirm
+  against a live DD. Each correction is one struct + one `testdata/*.json` fixture in one module.
+- **Label-key consistency.** A metric name must carry one label-key set across all series;
+  `labels_test.go` guards this.
+- **Auth.** Token via `X-DD-AUTH-TOKEN`; retry excludes 4xx (never retry auth failures).
+- **Always update docs + `CHANGELOG.md`** in the same change as a feature.
+
+## Adding a metric domain
+Add a `ResourceCollector` in `internal/ppdd/<name>.go` (+ test + `testdata/<name>.json`),
+register it in `Registry()`, document it in `docs/metrics.md`, and add a `CHANGELOG.md` entry.
+```
+
+- [ ] **Step 2: Commit**
+
+```bash
+git add CLAUDE.md
+git commit -m "docs: add project CLAUDE.md"
+```
+
+**Phase 5 gate:** image builds; CI green; `mkdocs build --strict` passes; README, metrics
+reference, MkDocs site, `docs.yml`/`release.yml`, `CLAUDE.md`, `LICENSE`, and `CHANGELOG.md`
+all present and current.
+
+---
+
+## Release: cut the first version
+
+When Phases 1–5 are merged and live-validated:
+
+- [ ] In `CHANGELOG.md`, rename `[Unreleased]` to `## [0.1.0] - <date>` (keep a fresh empty
+  `[Unreleased]` above it).
+- [ ] Commit: `git commit -am "release: 0.1.0"`.
+- [ ] Tag: `git tag v0.1.0 && git push --tags` (triggers `release.yml`).
 
 ---
 
@@ -2465,4 +2831,9 @@ correct one module at a time (each is one struct + one fixture):
 - **TDD throughout:** every task writes the failing test first, watches it fail, then implements.
 - **Semgrep-on-write hook is active and blocks on findings** — use the `writeBytes(io.Writer, …)` helper in test handlers; do not write inline `// nosemgrep`.
 - **Commit after every green step** — small commits, each independently sensible.
+- **Documentation and CHANGELOG are part of "done."** Any task that adds or changes a
+  user-visible feature also updates the relevant docs (`README.md`, `docs/`, `docs/metrics.md`,
+  `CLAUDE.md`) and adds a `CHANGELOG.md` `[Unreleased]` entry in the **same commit**. Don't defer
+  docs to the end — Phase 5 builds the docs *site*, but each phase keeps the metrics reference and
+  changelog current as metrics land.
 - **Provisional fields are isolated by design** — when live validation contradicts a field, the fix is one struct + one fixture in one module; the loop, snapshot, and Prometheus layers don't change.

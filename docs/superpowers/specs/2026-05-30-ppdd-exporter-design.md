@@ -151,6 +151,21 @@ systems:
   instead), Dockerfile with a non-root `USER`, MkDocs Material docs, GitHub Actions
   (`ci.yml`, `release.yml`, `docs.yml`). **Apache-2.0** license.
 
+### Documentation & changelog (part of "done")
+
+Documentation is maintained alongside the code, not deferred:
+
+- **MkDocs Material site** (`mkdocs.yml` + `docs/`): home, getting-started
+  (installation/configuration/quickstart), metrics reference, deployment — published to GitHub
+  Pages via `docs.yml`.
+- **`README.md`**, a project **`CLAUDE.md`** capturing the load-bearing conventions, and an
+  **Apache-2.0 `LICENSE`**.
+- **`CHANGELOG.md`** in [Keep a Changelog](https://keepachangelog.com/) + SemVer format:
+  maintained from the first commit with an `[Unreleased]` section that gains an entry as each
+  phase/feature lands; releases cut a dated version section (first tag `v0.1.0`).
+- **Rule:** any change that adds or alters a user-visible feature updates the relevant docs and
+  the `CHANGELOG.md` `[Unreleased]` section in the **same commit**.
+
 ## Testing
 
 - `httptest` TLS **mock DD** serving `/api/v1/auth` and each module's endpoint from
