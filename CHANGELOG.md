@@ -6,6 +6,8 @@ All notable changes to this project are documented here. The format is based on
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-05-30
+
 ### Security
 - The default `config.yaml` no longer enables `insecureSkipVerify` (it is commented out with a warning). Disabling TLS certificate verification exposes the connection to man-in-the-middle attacks and is now opt-in only; the Compose demo keeps it in `config.demo.yaml` where it is needed for `mockdd`.
 
