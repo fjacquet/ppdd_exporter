@@ -1,3 +1,41 @@
+# CLAUDE.md
+
+Guidance for working in `ppdd_exporter`.
+
+## Commands
+- `make cli` — build `bin/ppdd_exporter`.
+- `make test` / `make test-race` — tests.
+- `make ci` — gofmt check + vet + race tests + build (the CI gate).
+- Run: `./bin/ppdd_exporter --config config.yaml [--once] [--debug]`. Secrets are `${ENV}`
+  refs in `config.yaml` (or `passwordFile`).
+- Docs: `uvx --with mkdocs-material --with pymdown-extensions mkdocs build --strict`.
+
+## Architecture
+Prometheus exporter for Dell PowerProtect DD. A background **collection loop**
+(`internal/ppdd/collector.go`) polls every system on `collection.interval` and publishes an
+immutable **snapshot** to a `SnapshotStore` (RWMutex pointer-swap). The `/metrics` handler
+(`prometheus.go`, an *unchecked* collector) reads the latest snapshot, decoupling DD API load
+from scrape count. `main.go` wires the server, loop, hot reload, and `/health`.
+
+Collection is **modular**: each domain implements `ResourceCollector` (`resource.go`) — owns
+its endpoint path, JSON struct, and `parse → []Sample`. Modules: `capacity`, `mtrees`,
+`replication`, `health`. A module failure degrades to `ppdd_collector_up{collector}=0`, never
+crashing the cycle.
+
+## Conventions (load-bearing)
+- **Provisional API mappings.** Endpoint paths/fields are modeled from Dell docs only — confirm
+  against a live DD. Each correction is one struct + one `testdata/*.json` fixture in one module.
+- **Label-key consistency.** A metric name must carry one label-key set across all series;
+  `labels_test.go` guards this.
+- **Auth.** Token via `X-DD-AUTH-TOKEN`; retry excludes 4xx (never retry auth failures).
+- **Always update docs + `CHANGELOG.md`** in the same change as a feature.
+
+## Adding a metric domain
+Add a `ResourceCollector` in `internal/ppdd/<name>.go` (+ test + `testdata/<name>.json`),
+register it in `Registry()`, document it in `docs/metrics.md`, and add a `CHANGELOG.md` entry.
+
+---
+
 <!-- rtk-instructions v2 -->
 # RTK (Rust Token Killer) - Token-Optimized Commands
 
