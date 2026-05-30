@@ -134,4 +134,3 @@ func healthHandler(w http.ResponseWriter, store *ppdd.SnapshotStore) {
 	}
 	_ = json.NewEncoder(w).Encode(out)
 }
-
