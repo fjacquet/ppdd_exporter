@@ -1,0 +1,9 @@
+{
+  "alert": [
+    { "id": "CALERT-1001", "severity": "critical" },
+    { "id": "CALERT-1002", "severity": "warning" },
+    { "id": "CALERT-1003", "severity": "warning" },
+    { "id": "CALERT-1004", "severity": "warning" },
+    { "id": "CALERT-1005", "severity": "info" }
+  ]
+}

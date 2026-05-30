@@ -1,0 +1,36 @@
+{
+  "mtree": [
+    {
+      "name": "/data/col1/backup-sql",
+      "logical_used_bytes": 24500000000000,
+      "physical_used_bytes": 2100000000000,
+      "compression_factor": 11.6,
+      "quota_soft_limit_bytes": 30000000000000,
+      "quota_hard_limit_bytes": 35000000000000
+    },
+    {
+      "name": "/data/col1/backup-vmware",
+      "logical_used_bytes": 41200000000000,
+      "physical_used_bytes": 3600000000000,
+      "compression_factor": 11.4,
+      "quota_soft_limit_bytes": 50000000000000,
+      "quota_hard_limit_bytes": 55000000000000
+    },
+    {
+      "name": "/data/col1/backup-nas",
+      "logical_used_bytes": 8900000000000,
+      "physical_used_bytes": 1200000000000,
+      "compression_factor": 7.4,
+      "quota_soft_limit_bytes": 0,
+      "quota_hard_limit_bytes": 0
+    },
+    {
+      "name": "/data/col1/archive",
+      "logical_used_bytes": 132000000000000,
+      "physical_used_bytes": 9800000000000,
+      "compression_factor": 13.5,
+      "quota_soft_limit_bytes": 150000000000000,
+      "quota_hard_limit_bytes": 160000000000000
+    }
+  ]
+}

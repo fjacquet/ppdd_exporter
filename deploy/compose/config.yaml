@@ -1,0 +1,18 @@
+---
+# Exporter config for the Compose demo stacks. Points at the bundled `mockdd`
+# service (a fake DD appliance), so the dashboard populates without real hardware.
+# For a real appliance, change `host` and credentials and drop the mockdd service.
+server:
+  host: "0.0.0.0"
+  port: "9099"
+  uri: "/metrics"
+  logName: ""
+collection:
+  interval: "30s"   # tighter than the 5m default so the demo refreshes quickly
+  timeout: "15s"
+systems:
+  - name: dd-prod-01
+    host: mockdd      # the mockdd service; :3009 implied
+    username: monitor
+    password: "demo"
+    insecureSkipVerify: true

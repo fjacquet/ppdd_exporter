@@ -18,3 +18,6 @@ All notable changes to this project are documented here. The format is based on
 - Added replication context metrics (state, sync lag, backlog, throughput).
 - Added health & ops metrics (disk state, active alerts by severity, system CPU/throughput).
 - MkDocs documentation site.
+- Sample Grafana dashboard (`grafana/ppdd-overview.json`) covering capacity/dedup, MTrees, replication, and health.
+- Two end-to-end Docker Compose demo stacks (exporter built from source, and pulled from GHCR) wiring mockdd → exporter → Prometheus → Grafana with auto-provisioned datasource and dashboard.
+- `mockdd` (`cmd/mockdd`): a self-contained fake DD appliance serving demo fixtures over TLS, so the stacks populate the dashboard without real hardware.

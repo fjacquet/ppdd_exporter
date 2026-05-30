@@ -19,3 +19,4 @@ nav:
   - Metrics reference: metrics.md
   - Deployment:
       - Docker: deployment/docker.md
+      - End-to-end demo (Compose): deployment/compose-demo.md
