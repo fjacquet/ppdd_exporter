@@ -6,6 +6,9 @@ All notable changes to this project are documented here. The format is based on
 
 ## [Unreleased]
 
+### Added
+- Architecture Decision Records under `docs/adr/` (MADR format) documenting the snapshot model, modular collectors, provisional API mappings, auth/retry policy, hot-reload swap, and the label-key consistency invariant, plus a template and index wired into the docs nav.
+
 ## [0.1.1] - 2026-05-31
 
 ### Added
