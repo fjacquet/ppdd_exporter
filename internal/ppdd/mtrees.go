@@ -101,11 +101,15 @@ func mtreeUsage(ctx context.Context, c ddclient.Client, mt mtreeListItem) []Samp
 	for _, t := range latest.TierCapacityUsage {
 		logicalUsed += t.LogicalCapacity.Used
 	}
-	if len(latest.TierDataWritten) > 0 {
-		comp = latest.TierDataWritten[0].CompressionFactor
-		for _, t := range latest.TierDataWritten {
-			postComp += t.PostCompWritten
-		}
+	// Aggregate compression across tiers, weighted by post-comp bytes: the global
+	// factor is total pre-comp / total post-comp = Σ(cf_i·post_i) / Σ(post_i).
+	var weightedComp float64
+	for _, t := range latest.TierDataWritten {
+		postComp += t.PostCompWritten
+		weightedComp += t.CompressionFactor * t.PostCompWritten
+	}
+	if postComp > 0 {
+		comp = weightedComp / postComp
 	}
 	lbl := []Label{{Key: "mtree", Value: mt.Name}}
 	return []Sample{

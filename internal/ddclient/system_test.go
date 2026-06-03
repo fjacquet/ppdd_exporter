@@ -67,7 +67,9 @@ func TestSystemClientAuthAndGet(t *testing.T) {
 		t.Fatalf("PhysicalUsed = %v, want 99", out.PhysicalUsed)
 	}
 	// Second Get reuses the token — no extra login.
-	_ = c.Get(context.Background(), "/rest/v1.0/system", &out)
+	if err := c.Get(context.Background(), "/rest/v1.0/system", &out); err != nil {
+		t.Fatalf("second Get: %v", err)
+	}
 	if logins != 1 {
 		t.Fatalf("logins = %d, want 1 (token should be reused)", logins)
 	}
