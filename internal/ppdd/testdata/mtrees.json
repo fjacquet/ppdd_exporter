@@ -1,20 +1,13 @@
 {
   "mtree": [
     {
+      "id": "%2Fdata%2Fcol1%2Fbackup1",
       "name": "/data/col1/backup1",
-      "logical_used_bytes": 5000000000,
-      "physical_used_bytes": 800000000,
-      "compression_factor": 6.25,
+      "is_degraded": "degraded",
+      "mtree_rl_detail": { "rl_status": "enabled" },
       "quota_soft_limit_bytes": 10000000000,
       "quota_hard_limit_bytes": 12000000000
-    },
-    {
-      "name": "/data/col1/backup2",
-      "logical_used_bytes": 0,
-      "physical_used_bytes": 0,
-      "compression_factor": 0,
-      "quota_soft_limit_bytes": 0,
-      "quota_hard_limit_bytes": 0
     }
-  ]
+  ],
+  "paging_info": { "current_page": 0, "page_entries": 1, "total_entries": 1, "page_size": 200 }
 }
