@@ -5,4 +5,6 @@ log/
 .DS_Store
 site/
 /ppdd_exporter
+/mockdd
+.env
 .vscode/

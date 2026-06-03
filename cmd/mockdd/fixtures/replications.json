@@ -1,20 +1,6 @@
 {
   "replication": [
-    {
-      "source": "dd-prod-01:/data/col1/backup-sql",
-      "destination": "dd-dr-01:/data/col1/backup-sql",
-      "state": "normal",
-      "sync_lag_seconds": 95,
-      "precomp_bytes_remaining": 5368709120,
-      "throughput_bytes_per_second": 134217728
-    },
-    {
-      "source": "dd-prod-01:/data/col1/backup-vmware",
-      "destination": "dd-dr-01:/data/col1/backup-vmware",
-      "state": "lagging",
-      "sync_lag_seconds": 4200,
-      "precomp_bytes_remaining": 219902325555,
-      "throughput_bytes_per_second": 88080384
-    }
-  ]
+    { "source": "dd01:/data/col1/backup", "destination": "dd02:/data/col1/backup", "state": "normal", "sync_lag_seconds": 120, "precomp_bytes_remaining": 2048, "throughput_bytes_per_second": 1048576 }
+  ],
+  "paging_info": { "current_page": 0, "page_entries": 1, "total_entries": 1, "page_size": 200 }
 }

@@ -1,7 +1,4 @@
 {
-  "physical_capacity_bytes": 100000000000,
-  "physical_used_bytes": 40000000000,
-  "physical_available_bytes": 60000000000,
   "global_compression_factor": 5.5,
   "local_compression_factor": 1.8,
   "total_compression_factor": 9.9,

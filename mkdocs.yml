@@ -28,4 +28,5 @@ nav:
       - 0004 Token auth & retry: adr/0004-token-auth-retry-policy.md
       - 0005 Hot reload swap: adr/0005-config-hot-reload-rebuild-and-swap.md
       - 0006 Label-key consistency: adr/0006-label-key-consistency-invariant.md
+      - 0007 API realignment: adr/0007-dd-rest-api-realignment.md
       - Template: adr/0000-template.md

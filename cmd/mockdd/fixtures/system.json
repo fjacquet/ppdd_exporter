@@ -1,0 +1,9 @@
+{
+  "physical_capacity": { "available": 60000000000, "total": 100000000000, "used": 40000000000 },
+  "logical_capacity": { "available": 500000000000, "total": 540000000000, "used": 40000000000 },
+  "compression_factor": 9.2,
+  "uptime_secs": 256674,
+  "version": "Data Domain OS 7.3.0.0",
+  "model": "DD VE Version 5.0",
+  "serialno": "MOCKDD000001"
+}

@@ -109,7 +109,8 @@
       "targets": [
         { "refId": "A", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "ppdd_compression_global_factor{system=~\"$system\"}", "legendFormat": "global {{system}}" },
         { "refId": "B", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "ppdd_compression_local_factor{system=~\"$system\"}", "legendFormat": "local {{system}}" },
-        { "refId": "C", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "ppdd_compression_total_factor{system=~\"$system\"}", "legendFormat": "total {{system}}" }
+        { "refId": "C", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "ppdd_compression_total_factor{system=~\"$system\"}", "legendFormat": "total {{system}}" },
+        { "refId": "Documented", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "ppdd_compression_factor{system=~\"$system\"}", "legendFormat": "documented {{system}}" }
       ]
     },
     {
@@ -136,7 +137,9 @@
       "targets": [
         { "refId": "Logical", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "ppdd_mtree_logical_used_bytes{system=~\"$system\"}", "format": "table", "instant": true },
         { "refId": "Physical", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "ppdd_mtree_physical_used_bytes{system=~\"$system\"}", "format": "table", "instant": true },
-        { "refId": "Compression", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "ppdd_mtree_compression_factor{system=~\"$system\"}", "format": "table", "instant": true }
+        { "refId": "Compression", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "ppdd_mtree_compression_factor{system=~\"$system\"}", "format": "table", "instant": true },
+        { "refId": "Degraded", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "ppdd_mtree_degraded{system=~\"$system\"}", "format": "table", "instant": true },
+        { "refId": "RetentionLock", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "ppdd_mtree_retention_lock_enabled{system=~\"$system\"}", "format": "table", "instant": true }
       ],
       "transformations": [
         { "id": "merge", "options": {} },
@@ -149,7 +152,9 @@
               "system": "System",
               "Value #Logical": "Logical Used",
               "Value #Physical": "Physical Used",
-              "Value #Compression": "Compression x"
+              "Value #Compression": "Compression x",
+              "Value #Degraded": "Degraded",
+              "Value #RetentionLock": "Retention Lock"
             }
           }
         }
@@ -159,7 +164,9 @@
         "overrides": [
           { "matcher": { "id": "byName", "options": "Logical Used" }, "properties": [ { "id": "unit", "value": "bytes" } ] },
           { "matcher": { "id": "byName", "options": "Physical Used" }, "properties": [ { "id": "unit", "value": "bytes" } ] },
-          { "matcher": { "id": "byName", "options": "Compression x" }, "properties": [ { "id": "unit", "value": "none" }, { "id": "decimals", "value": 1 } ] }
+          { "matcher": { "id": "byName", "options": "Compression x" }, "properties": [ { "id": "unit", "value": "none" }, { "id": "decimals", "value": 1 } ] },
+          { "matcher": { "id": "byName", "options": "Degraded" }, "properties": [ { "id": "mappings", "value": [ { "type": "value", "options": { "0": { "text": "No", "color": "green" }, "1": { "text": "Yes", "color": "red" } } } ] }, { "id": "custom.cellOptions", "value": { "type": "color-text" } } ] },
+          { "matcher": { "id": "byName", "options": "Retention Lock" }, "properties": [ { "id": "mappings", "value": [ { "type": "value", "options": { "0": { "text": "No", "color": "orange" }, "1": { "text": "Yes", "color": "green" } } } ] }, { "id": "custom.cellOptions", "value": { "type": "color-text" } } ] }
         ]
       }
     },
@@ -231,13 +238,13 @@
     },
     {
       "type": "bargauge",
-      "title": "Active Alerts by Severity",
+      "title": "Active Alerts by Severity / Class",
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "gridPos": { "h": 6, "w": 6, "x": 6, "y": 27 },
       "options": { "orientation": "horizontal", "displayMode": "basic" },
       "fieldConfig": { "defaults": { "unit": "none" } },
       "targets": [
-        { "refId": "A", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "sum(ppdd_alerts_active{system=~\"$system\"}) by (severity)", "legendFormat": "{{severity}}", "instant": true }
+        { "refId": "A", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "sum(ppdd_alerts_active{system=~\"$system\"}) by (severity, class)", "legendFormat": "{{severity}} / {{class}}", "instant": true }
       ]
     },
     {

@@ -1,6 +1,6 @@
 // Command mockdd is a minimal fake Dell PowerProtect DD appliance for end-to-end
 // demos. It serves the same REST surface the exporter calls (token auth on
-// /api/v1/auth plus the per-resource GET endpoints) over self-signed TLS on :3009,
+// /rest/v1.0/auth plus the per-resource GET endpoints) over self-signed TLS on :3009,
 // returning canned JSON from embedded fixtures. It is NOT a faithful DD emulator —
 // it exists so the Compose stacks light up a Grafana dashboard without real hardware.
 package main
@@ -25,12 +25,13 @@ var fixtures embed.FS
 
 // routes maps an exporter request path to its embedded fixture file.
 var routes = map[string]string{
-	"/api/v1/dd-systems/0/file-system":        "fixtures/file-system.json",
-	"/api/v1/dd-systems/0/mtrees":             "fixtures/mtrees.json",
-	"/api/v1/dd-systems/0/replications":       "fixtures/replications.json",
-	"/api/v1/dd-systems/0/hardware/disks":     "fixtures/disks.json",
-	"/api/v1/dd-systems/0/alerts":             "fixtures/alerts.json",
-	"/api/v1/dd-systems/0/stats/system-stats": "fixtures/system-stats.json",
+	"/rest/v1.0/system":                          "fixtures/system.json",
+	"/rest/v1.0/dd-systems/0/file-system":        "fixtures/file-system.json",
+	"/rest/v3.0/dd-systems/0/mtrees":             "fixtures/mtrees.json",
+	"/rest/v1.0/dd-systems/0/replications":       "fixtures/replications.json",
+	"/rest/v1.0/dd-systems/0/hardware/disks":     "fixtures/disks.json",
+	"/rest/v1.0/dd-systems/0/alerts":             "fixtures/alerts.json",
+	"/rest/v1.0/dd-systems/0/stats/system-stats": "fixtures/system-stats.json",
 }
 
 const mockToken = "mockdd-session-token"
@@ -40,7 +41,7 @@ func main() {
 
 	// Auth: POST returns a session token header; DELETE logs out. Credentials are
 	// not checked — this is a demo appliance.
-	mux.HandleFunc("/api/v1/auth", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/rest/v1.0/auth", func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodPost:
 			w.Header().Set("X-DD-AUTH-TOKEN", mockToken)
@@ -53,26 +54,11 @@ func main() {
 	})
 
 	for path, file := range routes {
-		file := file
-		mux.HandleFunc(path, func(w http.ResponseWriter, r *http.Request) {
-			if r.Method != http.MethodGet {
-				w.Header().Set("Allow", http.MethodGet)
-				w.WriteHeader(http.StatusMethodNotAllowed)
-				return
-			}
-			if r.Header.Get("X-DD-AUTH-TOKEN") != mockToken {
-				w.WriteHeader(http.StatusUnauthorized)
-				return
-			}
-			b, err := fixtures.ReadFile(file)
-			if err != nil {
-				w.WriteHeader(http.StatusInternalServerError)
-				return
-			}
-			w.Header().Set("Content-Type", "application/json")
-			writeBytes(w, b)
-		})
+		mux.HandleFunc(path, fixtureHandler(file))
 	}
+	// Per-MTree capacity stats (v2.0). The {id} wildcard serves the same canned
+	// stats for every MTree in the demo.
+	mux.HandleFunc("/rest/v2.0/dd-systems/0/mtrees/{id}/stats/capacity", fixtureHandler("fixtures/mtree-stats.json"))
 
 	srv := &http.Server{
 		Addr:              ":3009",
@@ -85,6 +71,29 @@ func main() {
 	}
 	log.Println("mockdd: serving fake DD API on https://localhost:3009")
 	log.Fatal(srv.ListenAndServeTLS("", ""))
+}
+
+// fixtureHandler returns a GET handler that requires the session token and serves
+// the named embedded fixture as JSON.
+func fixtureHandler(file string) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet {
+			w.Header().Set("Allow", http.MethodGet)
+			w.WriteHeader(http.StatusMethodNotAllowed)
+			return
+		}
+		if r.Header.Get("X-DD-AUTH-TOKEN") != mockToken {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+		b, err := fixtures.ReadFile(file)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		writeBytes(w, b)
+	}
 }
 
 // writeBytes writes b to w. It takes io.Writer (not http.ResponseWriter) so the raw

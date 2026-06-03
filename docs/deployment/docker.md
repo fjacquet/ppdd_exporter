@@ -10,3 +10,26 @@ docker run -d --name ppdd_exporter -p 9099:9099 \
 ```
 
 Health and metrics are on the same port (`/health`, `/metrics`).
+
+## Full stack on a server (Compose)
+
+`docker-compose.server.yml` runs the exporter against a **real** PowerProtect DD
+appliance alongside Prometheus and Grafana — the same stack as the laptop demo
+(`docker-compose.yml`) but without the bundled `mockdd` fake appliance, with secrets
+read from a gitignored `.env`, and with Grafana reachable from other machines.
+
+```bash
+cp .env.example .env        # set DD01_PASSWORD, Grafana creds, and GF_SERVER_ROOT_URL
+$EDITOR config.yaml         # set your appliance host(s) under `systems:`
+docker compose -f docker-compose.server.yml up -d
+```
+
+Open Grafana at the URL you set in `GF_SERVER_ROOT_URL` (its admin login comes from
+`.env`) and pick **PowerProtect DD — Overview**. Required secrets fail fast if unset.
+
+`GF_SERVER_ROOT_URL` must point at how you actually reach the server (e.g.
+`http://dd-mon.example.com:3000`), not `localhost` — otherwise Grafana's login
+redirects and share links break when accessed remotely.
+
+> The stack stores no data in named volumes, so Prometheus history and Grafana
+> changes are lost on `down`. Add volumes if you need persistence.

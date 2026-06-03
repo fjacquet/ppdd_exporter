@@ -1,0 +1,59 @@
+---
+# Server deployment — the exporter monitors a REAL PowerProtect DD appliance.
+# Unlike the laptop demo (docker-compose.yml) there is no mockdd: the exporter
+# reads the real config.yaml and connects to your DD over the network.
+#
+# Setup:
+#   cp .env.example .env          # then fill in secrets + your Grafana URL
+#   $EDITOR config.yaml           # set your DD host(s) under `systems:`
+#   docker compose -f docker-compose.server.yml up -d
+#
+# Then open Grafana at $GF_SERVER_ROOT_URL (admin user/password from .env) →
+# "PowerProtect DD — Overview".
+#
+# Secrets come from .env (gitignored). Required vars fail fast if unset (${VAR:?...}).
+services:
+  ppdd_exporter:
+    image: ghcr.io/fjacquet/ppdd_exporter:${PPDD_TAG:-latest}
+    container_name: ppdd_exporter
+    command: ["--config", "/etc/ppdd_exporter/config.yaml"]
+    ports:
+      - "9099:9099"
+    environment:
+      # config.yaml references the DD password as ${DD01_PASSWORD}; the exporter
+      # resolves it from this env var at load time (and fails fast if unset).
+      - DD01_PASSWORD=${DD01_PASSWORD:?set DD01_PASSWORD in .env}
+    volumes:
+      # The REAL config (TLS verification on; edit `systems:` for your appliance).
+      - ./config.yaml:/etc/ppdd_exporter/config.yaml:ro
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: ppdd_prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    depends_on:
+      - ppdd_exporter
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: ppdd_grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GF_ADMIN_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GF_ADMIN_PASSWORD:?set GF_ADMIN_PASSWORD in .env}
+      - GF_USERS_ALLOW_SIGN_UP=false
+      # Public URL Grafana is served at — required for correct login redirects and
+      # share links when accessed from another machine (not localhost).
+      - GF_SERVER_ROOT_URL=${GF_SERVER_ROOT_URL:-http://localhost:3000}
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+    depends_on:
+      - prometheus
+    restart: unless-stopped

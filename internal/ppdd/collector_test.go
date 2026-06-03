@@ -10,7 +10,7 @@ import (
 
 func TestCollectOncePopulatesSnapshot(t *testing.T) {
 	m := ddclient.NewMock("dd01")
-	m.SetJSON("/api/v1/dd-systems/0/file-system", `{"physical_used_bytes":7}`)
+	m.SetJSON(pathSystem, `{"physical_capacity":{"total":0,"used":7,"available":0},"compression_factor":1.0}`)
 
 	store := NewSnapshotStore()
 	col := NewCollector([]ddclient.Client{m}, Registry(), store, time.Minute, 10*time.Second)
@@ -75,7 +75,7 @@ func TestCollectSystemNotOKWhenAllFail(t *testing.T) {
 func TestCollectSystemOKWhenAnyCollectorSucceeds(t *testing.T) {
 	m := ddclient.NewMock("dd01")
 	// Only register the capacity endpoint so capacity succeeds and others fail.
-	m.SetJSON("/api/v1/dd-systems/0/file-system", `{"physical_used_bytes":5}`)
+	m.SetJSON(pathSystem, `{"physical_capacity":{"total":0,"used":5,"available":0},"compression_factor":1.0}`)
 	store := NewSnapshotStore()
 	col := NewCollector([]ddclient.Client{m}, Registry(), store, time.Minute, 10*time.Second)
 	snap := col.CollectOnce(context.Background())

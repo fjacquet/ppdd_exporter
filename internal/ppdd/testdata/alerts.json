@@ -1,5 +1,8 @@
-{ "alert": [
-  { "id": "a1", "severity": "warning" },
-  { "id": "a2", "severity": "critical" },
-  { "id": "a3", "severity": "critical" }
-] }
+{
+  "alert": [
+    { "id": "a1", "severity": "warning",  "class": "capacity" },
+    { "id": "a2", "severity": "critical", "class": "hardware" },
+    { "id": "a3", "severity": "critical", "class": "hardware" }
+  ],
+  "paging_info": { "current_page": 0, "page_entries": 3, "total_entries": 3, "page_size": 200 }
+}

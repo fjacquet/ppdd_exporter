@@ -1,9 +1,7 @@
 {
   "alert": [
-    { "id": "CALERT-1001", "severity": "critical" },
-    { "id": "CALERT-1002", "severity": "warning" },
-    { "id": "CALERT-1003", "severity": "warning" },
-    { "id": "CALERT-1004", "severity": "warning" },
-    { "id": "CALERT-1005", "severity": "info" }
-  ]
+    { "id": "a1", "severity": "warning",  "class": "capacity" },
+    { "id": "a2", "severity": "critical", "class": "hardware" }
+  ],
+  "paging_info": { "current_page": 0, "page_entries": 2, "total_entries": 2, "page_size": 200 }
 }
