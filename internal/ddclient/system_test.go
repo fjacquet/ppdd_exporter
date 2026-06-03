@@ -2,6 +2,7 @@ package ddclient
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"sync/atomic"
@@ -15,17 +16,22 @@ func writeBytes(w http.ResponseWriter, b []byte) { _, _ = w.Write(b) }
 
 func newFakeDD(t *testing.T, logins *int32) *httptest.Server {
 	mux := http.NewServeMux()
-	mux.HandleFunc("/api/v1/auth", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/rest/v1.0/auth", func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodPost:
 			atomic.AddInt32(logins, 1)
+			var body map[string]any
+			_ = json.NewDecoder(r.Body).Decode(&body)
+			if _, ok := body["username"]; !ok { // flat shape, NOT {auth_info:{...}}
+				t.Errorf("auth body missing flat username field: %v", body)
+			}
 			w.Header().Set("X-DD-AUTH-TOKEN", authToken)
 			w.WriteHeader(http.StatusCreated)
 		case http.MethodDelete:
 			w.WriteHeader(http.StatusNoContent)
 		}
 	})
-	mux.HandleFunc("/api/v1/dd-systems/0/file-system", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/rest/v1.0/system", func(w http.ResponseWriter, r *http.Request) {
 		if r.Header.Get("X-DD-AUTH-TOKEN") != authToken {
 			w.WriteHeader(http.StatusUnauthorized)
 			return
@@ -54,14 +60,14 @@ func TestSystemClientAuthAndGet(t *testing.T) {
 	var out struct {
 		PhysicalUsed float64 `json:"physical_used"`
 	}
-	if err := c.Get(context.Background(), "/api/v1/dd-systems/0/file-system", &out); err != nil {
+	if err := c.Get(context.Background(), "/rest/v1.0/system", &out); err != nil {
 		t.Fatalf("Get: %v", err)
 	}
 	if out.PhysicalUsed != 99 {
 		t.Fatalf("PhysicalUsed = %v, want 99", out.PhysicalUsed)
 	}
 	// Second Get reuses the token — no extra login.
-	_ = c.Get(context.Background(), "/api/v1/dd-systems/0/file-system", &out)
+	_ = c.Get(context.Background(), "/rest/v1.0/system", &out)
 	if logins != 1 {
 		t.Fatalf("logins = %d, want 1 (token should be reused)", logins)
 	}
@@ -71,7 +77,7 @@ func TestSystemClientReloginOn401(t *testing.T) {
 	var logins int32
 	var rotated atomic.Bool
 	mux := http.NewServeMux()
-	mux.HandleFunc("/api/v1/auth", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/rest/v1.0/auth", func(w http.ResponseWriter, r *http.Request) {
 		atomic.AddInt32(&logins, 1)
 		tok := "tok1"
 		if rotated.Load() {
@@ -80,7 +86,7 @@ func TestSystemClientReloginOn401(t *testing.T) {
 		w.Header().Set("X-DD-AUTH-TOKEN", tok)
 		w.WriteHeader(http.StatusCreated)
 	})
-	mux.HandleFunc("/api/v1/dd-systems/0/file-system", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/rest/v1.0/system", func(w http.ResponseWriter, r *http.Request) {
 		// Only "tok2" is accepted; first call (tok1) returns 401 and forces relogin.
 		if r.Header.Get("X-DD-AUTH-TOKEN") != "tok2" {
 			rotated.Store(true)
@@ -99,7 +105,7 @@ func TestSystemClientReloginOn401(t *testing.T) {
 		}
 	})
 	var out map[string]any
-	if err := c.Get(context.Background(), "/api/v1/dd-systems/0/file-system", &out); err != nil {
+	if err := c.Get(context.Background(), "/rest/v1.0/system", &out); err != nil {
 		t.Fatalf("Get: %v", err)
 	}
 	if logins != 2 {
