@@ -16,3 +16,4 @@ here.
 | [0004](0004-token-auth-retry-policy.md) | Token auth with a retry policy that excludes 4xx | accepted |
 | [0005](0005-config-hot-reload-rebuild-and-swap.md) | Hot reload rebuilds and swaps runtime components | accepted |
 | [0006](0006-label-key-consistency-invariant.md) | One label-key set per metric name | accepted |
+| [0007](0007-dd-rest-api-realignment.md) | Realign collectors to the documented DD 7.3 REST API | accepted |
