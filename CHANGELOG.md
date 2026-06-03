@@ -9,6 +9,7 @@ All notable changes to this project are documented here. The format is based on
 ### Added
 - Architecture Decision Records under `docs/adr/` (MADR format) documenting the snapshot model, modular collectors, provisional API mappings, auth/retry policy, hot-reload swap, and the label-key consistency invariant, plus a template and index wired into the docs nav.
 - Metrics `ppdd_compression_factor`, `ppdd_mtree_degraded`, and `ppdd_mtree_retention_lock_enabled`.
+- `docker-compose.server.yml` (+ `.env.example`) — a server stack that runs the exporter against a real DD appliance (no `mockdd`), with secrets from a gitignored `.env` and Grafana configured for remote access via `GF_SERVER_ROOT_URL`.
 
 ### Changed
 - Realigned collectors to the documented PowerProtect DD 7.3 REST API: the `/rest` prefix with per-resource versions (`mtrees` v3.0, `stats` v2.0), list pagination (no more silent truncation past 20 items), active-only alerts with a `class` label, capacity sourced from `/system`, and MTree usage from per-MTree v2.0 stats. Auth now posts the documented flat body to `/rest/v1.0/auth`. Metrics without a source in the guide (compression split, GC cleaning, MTree `physical_used`, quotas) are retained as flagged-provisional best-effort fetches. See [ADR-0007](docs/adr/0007-dd-rest-api-realignment.md).
