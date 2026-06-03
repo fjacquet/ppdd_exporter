@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 )
 
 // Mock is an in-memory Client that serves canned JSON bodies per path. Tests use it
@@ -23,6 +24,13 @@ func (m *Mock) Name() string { return m.name }
 
 func (m *Mock) Get(_ context.Context, path string, out any) error {
 	body, ok := m.paths[path]
+	if !ok {
+		// Fall back to a query-stripped match so collectors that append
+		// ?page=&size= resolve against a cleanly registered path.
+		if i := strings.IndexByte(path, '?'); i >= 0 {
+			body, ok = m.paths[path[:i]]
+		}
+	}
 	if !ok {
 		return fmt.Errorf("mock: no response registered for %s", path)
 	}
