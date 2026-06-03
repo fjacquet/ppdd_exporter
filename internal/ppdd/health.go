@@ -2,6 +2,7 @@ package ppdd
 
 import (
 	"context"
+	"encoding/json"
 
 	"github.com/fjacquet/ppdd_exporter/internal/ddclient"
 )
@@ -27,7 +28,7 @@ func healthDisks(ctx context.Context, c ddclient.Client) []Sample {
 			State string `json:"state"`
 		} `json:"disk"`
 	}
-	if err := c.Get(ctx, "/api/v1/dd-systems/0/hardware/disks", &r); err != nil {
+	if err := c.Get(ctx, pathDisks, &r); err != nil {
 		return nil
 	}
 	var out []Sample
@@ -42,21 +43,34 @@ func healthDisks(ctx context.Context, c ddclient.Client) []Sample {
 }
 
 func healthAlerts(ctx context.Context, c ddclient.Client) []Sample {
-	var r struct {
-		Alert []struct {
-			Severity string `json:"severity"`
-		} `json:"alert"`
-	}
-	if err := c.Get(ctx, "/api/v1/dd-systems/0/alerts", &r); err != nil {
+	type alertKey struct{ severity, class string }
+	counts := map[alertKey]float64{}
+	err := paginate(ctx, c, pathAlerts, "is_active=true", func(page json.RawMessage) (pagingInfo, error) {
+		var r struct {
+			Alert []struct {
+				Severity string `json:"severity"`
+				Class    string `json:"class"`
+			} `json:"alert"`
+			PagingInfo pagingInfo `json:"paging_info"`
+		}
+		if err := json.Unmarshal(page, &r); err != nil {
+			return pagingInfo{}, err
+		}
+		for _, a := range r.Alert {
+			counts[alertKey{a.Severity, a.Class}]++
+		}
+		return r.PagingInfo, nil
+	})
+	if err != nil {
 		return nil
 	}
-	counts := map[string]float64{}
-	for _, a := range r.Alert {
-		counts[a.Severity]++
-	}
 	var out []Sample
-	for sev, n := range counts {
-		out = append(out, Sample{Name: "ppdd_alerts_active", Labels: []Label{{Key: "severity", Value: sev}}, Value: n})
+	for k, n := range counts {
+		out = append(out, Sample{
+			Name:   "ppdd_alerts_active",
+			Labels: []Label{{Key: "severity", Value: k.severity}, {Key: "class", Value: k.class}},
+			Value:  n,
+		})
 	}
 	return out
 }
@@ -67,7 +81,7 @@ func healthSystemStats(ctx context.Context, c ddclient.Client) []Sample {
 		ReadBytesPerSec  float64 `json:"read_bytes_per_second"`
 		WriteBytesPerSec float64 `json:"write_bytes_per_second"`
 	}
-	if err := c.Get(ctx, "/api/v1/dd-systems/0/stats/system-stats", &r); err != nil {
+	if err := c.Get(ctx, pathSystemStats, &r); err != nil {
 		return nil
 	}
 	return []Sample{
