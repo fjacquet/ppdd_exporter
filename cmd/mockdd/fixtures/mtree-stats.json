@@ -1,0 +1,9 @@
+{
+  "stats_capacity": [
+    {
+      "collection_epoch": 1589310000,
+      "tier_capacity_usage": [ { "tier": "active", "logical_capacity": { "used": 5000000000 } } ],
+      "tier_data_written": [ { "tier": "active", "compression_factor": 6.25, "post_comp_written": 800000000 } ]
+    }
+  ]
+}

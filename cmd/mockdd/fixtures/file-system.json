@@ -1,9 +1,6 @@
 {
-  "physical_capacity_bytes": 109951162777600,
-  "physical_used_bytes": 68906889519104,
-  "physical_available_bytes": 41044273258496,
-  "global_compression_factor": 6.2,
-  "local_compression_factor": 1.9,
-  "total_compression_factor": 11.8,
-  "cleaning": { "status": "idle" }
+  "global_compression_factor": 5.5,
+  "local_compression_factor": 1.8,
+  "total_compression_factor": 9.9,
+  "cleaning": { "status": "running" }
 }
