@@ -1,0 +1,9 @@
+{
+  "physical_capacity": { "available": 60000000000, "total": 100000000000, "used": 40000000000 },
+  "logical_capacity": { "available": 130530410496, "total": 130530410496, "used": 0 },
+  "compression_factor": 9.9,
+  "uptime_secs": 256674,
+  "version": "Data Domain OS 7.3.0.0",
+  "model": "DD VE Version 5.0",
+  "serialno": "AUDV3ZU7Z6SB7R"
+}
