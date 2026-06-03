@@ -13,9 +13,11 @@ func buildFullMock(t *testing.T) *ddclient.Mock {
 	t.Helper()
 	m := loadHealthMock(t)
 	for path, file := range map[string]string{
-		"/api/v1/dd-systems/0/file-system":  "testdata/file-system.json",
-		"/api/v1/dd-systems/0/mtrees":       "testdata/mtrees.json",
-		"/api/v1/dd-systems/0/replications": "testdata/replications.json",
+		pathSystem:      "testdata/system.json",
+		pathFileSystem:  "testdata/file-system.json",
+		pathMTrees:      "testdata/mtrees.json",
+		pathReplication: "testdata/replications.json",
+		mtreeStatsPath("%2Fdata%2Fcol1%2Fbackup1"): "testdata/mtree-stats.json",
 	} {
 		b, err := readFixture(file)
 		if err != nil {
@@ -45,5 +47,25 @@ func TestLabelKeyConsistencyAcrossCollectors(t *testing.T) {
 			}
 			keysByName[s.Name] = sig
 		}
+	}
+}
+
+func TestAlertsPaginationCollectsAllPages(t *testing.T) {
+	m := ddclient.NewMock("dd01")
+	// page_size 2, total 3 -> two pages. is_active=true is appended by the collector.
+	m.SetJSON("/rest/v1.0/dd-systems/0/alerts?page=0&size=200&is_active=true",
+		`{"paging_info":{"current_page":0,"page_entries":2,"total_entries":3,"page_size":2},"alert":[{"severity":"warning","class":"capacity"},{"severity":"warning","class":"capacity"}]}`)
+	m.SetJSON("/rest/v1.0/dd-systems/0/alerts?page=1&size=200&is_active=true",
+		`{"paging_info":{"current_page":1,"page_entries":1,"total_entries":3,"page_size":2},"alert":[{"severity":"warning","class":"capacity"}]}`)
+
+	got := healthAlerts(context.Background(), m)
+	var total float64
+	for _, s := range got {
+		if s.Name == "ppdd_alerts_active" {
+			total += s.Value
+		}
+	}
+	if total != 3 {
+		t.Fatalf("active alerts across pages = %v, want 3 (pagination dropped data)", total)
 	}
 }
