@@ -8,9 +8,9 @@ import "context"
 type Client interface {
 	// Name returns the configured system name (used as the `system` label).
 	Name() string
-	// Get fetches an absolute API path (e.g. "/api/v1/dd-systems/0/file-system")
+	// Get fetches an absolute API path (e.g. "/rest/v1.0/system")
 	// and JSON-decodes the body into out. It (re-)authenticates as needed.
 	Get(ctx context.Context, path string, out any) error
-	// Close releases the session (DELETE /api/v1/auth) and HTTP resources.
+	// Close releases the session (DELETE /rest/v1.0/auth) and HTTP resources.
 	Close() error
 }
