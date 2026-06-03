@@ -14,7 +14,7 @@ func TestReplicationCollect(t *testing.T) {
 		t.Fatalf("read fixture: %v", err)
 	}
 	m := ddclient.NewMock("dd01")
-	m.SetJSON("/api/v1/dd-systems/0/replications", string(body))
+	m.SetJSON(pathReplication, string(body))
 
 	got, err := Replication{}.Collect(context.Background(), m)
 	if err != nil {
