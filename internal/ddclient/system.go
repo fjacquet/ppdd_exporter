@@ -35,7 +35,10 @@ func NewSystemClient(cfg Config) *SystemClient {
 	if cfg.HTTPClient != nil {
 		rc.SetTransport(cfg.HTTPClient.Transport)
 	} else if cfg.InsecureSkipVerify {
-		rc.SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true}) //nolint:gosec // operator opt-in
+		rc.SetTLSClientConfig(&tls.Config{
+			InsecureSkipVerify: cfg.InsecureSkipVerify, //nolint:gosec // operator opt-in for self-signed DD appliances
+			MinVersion:         tls.VersionTLS12,
+		})
 	}
 	// Retry on transport errors and 5xx, but never on 4xx (do not retry
 	// auth/permission failures). resty passes r == nil on transport/TLS errors,

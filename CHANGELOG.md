@@ -6,6 +6,41 @@ All notable changes to this project are documented here. The format is based on
 
 ## [Unreleased]
 
+### Security
+- **CI now scans for vulnerabilities and insecure patterns.** The `make ci` gate adds
+  `golangci-lint` (pinned `v2.12.2`) and `govulncheck`, and `ci.yml` gains a dedicated
+  **Semgrep** job (`--config auto --error`) plus a CycloneDX SBOM artifact job. Known-CVE
+  dependencies and flagged code now fail CI before merge.
+- **All GitHub Actions are pinned to full commit SHAs** (with `# vX.Y.Z` comments) across
+  `ci.yml`, `release.yml`, and `docs.yml`, hardening against mutable-tag repoint attacks.
+  Top-level workflow `permissions` are now least-privilege (`contents: read`), with write
+  scopes granted only to the jobs that need them.
+- Pinned the Dockerfile build stage to `golang:1.26.4`.
+
+### Changed
+- **Release pipeline migrated to GoReleaser** (`.goreleaser.yaml`), replacing the
+  hand-rolled build matrix and `softprops/action-gh-release`. It owns cross-compilation
+  (`linux,darwin × amd64,arm64`), `tar.gz` archives (bundling `LICENSE`, `README.md`,
+  `config.yaml`), `checksums.txt`, the CycloneDX SBOM (kept on **cyclonedx-gomod**, so its
+  content matches `make sbom`), and the GitHub Release. Reproducible-build flags
+  (`-trimpath`, `mod_timestamp`) were added. Releases now ship **both `tar.gz` archives
+  and the raw binaries** for each `os/arch`. The multi-arch GHCR image (build-time SBOM + max-mode
+  provenance) is retained, now SHA-pinned and tagged via `docker/metadata-action`.
+  See [ADR-0008](docs/adr/0008-ci-supply-chain-hardening.md).
+
+### Added
+- `.github/dependabot.yml` to keep the SHA-pinned Actions, Go modules, and Docker base
+  current (weekly).
+- `make tools` / `make tools-sbom` (install dev/CI tooling), `make lint`, `make vuln`,
+  `make sbom`, `make release`, and `make release-snapshot` (local GoReleaser dry-run).
+- Hardened the DD client TLS config (`MinVersion: tls.VersionTLS12`) so the opt-in
+  `insecureSkipVerify` path still negotiates a modern floor.
+- **Homebrew cask** published to the `fjacquet/homebrew-tap` tap on each release
+  (`brew install --cask fjacquet/tap/ppdd_exporter`; macOS only). Skipped automatically
+  until the tap repo and `HOMEBREW_TAP_GITHUB_TOKEN` secret exist.
+- [ADR 0008](docs/adr/0008-ci-supply-chain-hardening.md) documenting the scanning,
+  SHA-pinning, and GoReleaser migration decisions.
+
 ## [0.2.0] - 2026-06-03
 
 ### Added
