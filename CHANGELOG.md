@@ -6,6 +6,8 @@ All notable changes to this project are documented here. The format is based on
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-06-05
+
 ### Security
 - **CI now scans for vulnerabilities and insecure patterns.** The `make ci` gate adds
   `golangci-lint` (pinned `v2.12.2`) and `govulncheck`, and `ci.yml` gains a dedicated
