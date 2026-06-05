@@ -17,3 +17,4 @@ here.
 | [0005](0005-config-hot-reload-rebuild-and-swap.md) | Hot reload rebuilds and swaps runtime components | accepted |
 | [0006](0006-label-key-consistency-invariant.md) | One label-key set per metric name | accepted |
 | [0007](0007-dd-rest-api-realignment.md) | Realign collectors to the documented DD 7.3 REST API | accepted |
+| [0008](0008-ci-supply-chain-hardening.md) | CI/CD supply-chain hardening: scanning, SHA-pinned Actions, GoReleaser | accepted |
