@@ -31,6 +31,65 @@ systems:
 	}
 }
 
+func TestLoadInterpolatesHostAndUsername(t *testing.T) {
+	t.Setenv("DD01_HOSTNAME", "dd01.example.com")
+	t.Setenv("DD01_USERNAME", "monitor")
+	t.Setenv("DD01_PASSWORD", "s3cret")
+	dir := t.TempDir()
+	path := filepath.Join(dir, "config.yaml")
+	yaml := `
+systems:
+  - {name: dd01, host: "${DD01_HOSTNAME}", username: "${DD01_USERNAME}", password: "${DD01_PASSWORD}"}
+`
+	if err := os.WriteFile(path, []byte(yaml), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	cfg, err := Load(path)
+	if err != nil {
+		t.Fatalf("Load: %v", err)
+	}
+	if cfg.Systems[0].Host != "dd01.example.com" {
+		t.Fatalf("host = %q, want dd01.example.com", cfg.Systems[0].Host)
+	}
+	if cfg.Systems[0].Username != "monitor" {
+		t.Fatalf("username = %q, want monitor", cfg.Systems[0].Username)
+	}
+}
+
+func TestLoadFailsOnMissingHostEnvRef(t *testing.T) {
+	// DD01_HOSTNAME intentionally unset: an unresolved ${VAR} in host must be a
+	// load error, not a silent empty hostname that fails connection later.
+	dir := t.TempDir()
+	path := filepath.Join(dir, "config.yaml")
+	yaml := `
+systems:
+  - {name: dd01, host: "${DD01_HOSTNAME}", username: u, password: "secret"}
+`
+	if err := os.WriteFile(path, []byte(yaml), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := Load(path); err == nil {
+		t.Fatal("expected error when host env var is unset")
+	}
+}
+
+func TestLoadFailsOnMissingUsernameEnvRef(t *testing.T) {
+	// DD01_USERNAME intentionally unset: an unresolved ${VAR} in username must be a
+	// load error, not a silent empty username that fails auth later.
+	dir := t.TempDir()
+	path := filepath.Join(dir, "config.yaml")
+	yaml := `
+systems:
+  - {name: dd01, host: dd01.example.com, username: "${DD01_USERNAME}", password: "secret"}
+`
+	if err := os.WriteFile(path, []byte(yaml), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := Load(path); err == nil {
+		t.Fatal("expected error when username env var is unset")
+	}
+}
+
 func TestLoadFailsOnMissingEnvRef(t *testing.T) {
 	// DD01_PASSWORD is intentionally unset: an unresolved ${VAR} must be a load
 	// error, not a silent empty password that fails auth later.

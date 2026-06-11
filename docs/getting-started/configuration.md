@@ -1,8 +1,9 @@
 # Configuration
 
-The exporter reads a YAML file (default `config.yaml`). Passwords support `${ENV_VAR}`
-interpolation or a `passwordFile` reference. A `${VAR}` whose environment variable is
-unset is a **load error** (fail fast), not a silent empty password.
+The exporter reads a YAML file (default `config.yaml`). The `host`, `username`, and
+`password` fields all support `${ENV_VAR}` interpolation; `password` additionally
+accepts a `passwordFile` reference. A `${VAR}` whose environment variable is unset is a
+**load error** (fail fast), not a silent misconfiguration.
 
 ```yaml
 server:
@@ -15,11 +16,19 @@ collection:
   timeout: "60s"          # per-system collection timeout
 systems:
   - name: dd-prod-01
-    host: dd01.example.com  # :3009 implied
-    username: ppdd-monitor  # a read-only/monitor DD user suffices
+    host: "${DD01_HOSTNAME}"    # or a literal: dd01.example.com — :3009 implied
+    username: "${DD01_USERNAME}"  # a read-only/monitor DD user suffices
     password: "${DD01_PASSWORD}"
     # insecureSkipVerify: true   # see warning below
 ```
+
+!!! tip "Single-system env convenience vs multi-system `config.yaml`"
+    `config.yaml` is the source of truth — one `systems` entry per appliance. Using
+    `${ENV_VAR}` for `host`, `username`, and `password` is a convenience for
+    single-appliance deployments where you prefer to keep all secrets in a `.env` file
+    (gitignored) rather than in `config.yaml`. For multi-appliance setups use distinct
+    variable names per system (e.g. `DD01_HOSTNAME`, `DD02_HOSTNAME`) or supply literal
+    values directly in `config.yaml`.
 
 | Key | Default | Notes |
 |---|---|---|
