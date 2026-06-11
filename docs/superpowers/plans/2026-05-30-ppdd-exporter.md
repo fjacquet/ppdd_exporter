@@ -752,14 +752,14 @@ import (
 )
 
 func TestLoadInterpolatesEnvAndDefaults(t *testing.T) {
-	t.Setenv("DD01_PASSWORD", "s3cret")
+	t.Setenv("PPDD1_PASSWORD", "s3cret")
 	dir := t.TempDir()
 	path := filepath.Join(dir, "config.yaml")
 	yaml := `
 server: {host: "0.0.0.0", port: "9099", uri: "/metrics"}
 collection: {interval: "5m", timeout: "60s"}
 systems:
-  - {name: dd01, host: dd01.example.com, username: u, password: "${DD01_PASSWORD}", insecureSkipVerify: true}
+  - {name: dd01, host: dd01.example.com, username: u, password: "${PPDD1_PASSWORD}", insecureSkipVerify: true}
 `
 	if err := os.WriteFile(path, []byte(yaml), 0o600); err != nil {
 		t.Fatal(err)
@@ -1388,7 +1388,7 @@ systems:
   - name: dd-prod-01
     host: dd01.example.com
     username: ppdd-monitor
-    password: "${DD01_PASSWORD}"
+    password: "${PPDD1_PASSWORD}"
     insecureSkipVerify: true
 ```
 
@@ -1563,13 +1563,13 @@ import (
 )
 
 func TestWatcherEmitsOnSIGHUPFunc(t *testing.T) {
-	t.Setenv("DD01_PASSWORD", "p")
+	t.Setenv("PPDD1_PASSWORD", "p")
 	dir := t.TempDir()
 	path := filepath.Join(dir, "c.yaml")
 	write := func(port string) {
 		_ = os.WriteFile(path, []byte(
 			"server: {port: \""+port+"\"}\ncollection: {interval: 5m}\n"+
-				"systems:\n  - {name: dd01, host: h, username: u, password: \"${DD01_PASSWORD}\"}\n"), 0o600)
+				"systems:\n  - {name: dd01, host: h, username: u, password: \"${PPDD1_PASSWORD}\"}\n"), 0o600)
 	}
 	write("9099")
 
@@ -2409,7 +2409,7 @@ process monitors many DD systems, polls each on an interval, and serves metrics 
 
 ```bash
 make cli
-export DD01_PASSWORD='your-monitor-password'
+export PPDD1_PASSWORD='your-monitor-password'
 ./bin/ppdd_exporter --config config.yaml
 # metrics: http://localhost:9099/metrics   health: http://localhost:9099/health
 ```
@@ -2542,7 +2542,7 @@ make cli
 ```bash
 docker build -t ppdd_exporter:dev .
 docker run --rm -p 9099:9099 \
-  -e DD01_PASSWORD=secret \
+  -e PPDD1_PASSWORD=secret \
   -v "$PWD/config.yaml:/etc/ppdd_exporter/config.yaml:ro" \
   ppdd_exporter:dev
 ```
@@ -2571,7 +2571,7 @@ systems:
   - name: dd-prod-01
     host: dd01.example.com  # :3009 implied
     username: ppdd-monitor  # a read-only/monitor DD user suffices
-    password: "${DD01_PASSWORD}"
+    password: "${PPDD1_PASSWORD}"
     insecureSkipVerify: true
 ```
 
@@ -2592,7 +2592,7 @@ Config reloads on **SIGHUP** or file change (restart to apply system/client chan
 
 ```bash
 make cli
-export DD01_PASSWORD='your-monitor-password'
+export PPDD1_PASSWORD='your-monitor-password'
 ./bin/ppdd_exporter --config config.yaml
 # metrics: http://localhost:9099/metrics
 # health:  http://localhost:9099/health
@@ -2620,7 +2620,7 @@ The image is distroless and runs as a non-root user.
 
 ```bash
 docker run -d --name ppdd_exporter -p 9099:9099 \
-  -e DD01_PASSWORD=secret \
+  -e PPDD1_PASSWORD=secret \
   -v /etc/ppdd_exporter/config.yaml:/etc/ppdd_exporter/config.yaml:ro \
   ghcr.io/fjacquet/ppdd_exporter:latest
 ```

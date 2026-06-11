@@ -20,9 +20,9 @@ services:
     ports:
       - "9099:9099"
     environment:
-      # config.yaml references the DD password as ${DD01_PASSWORD}; the exporter
+      # config.yaml references the DD password as ${PPDD1_PASSWORD}; the exporter
       # resolves it from this env var at load time (and fails fast if unset).
-      - DD01_PASSWORD=${DD01_PASSWORD:?set DD01_PASSWORD in .env}
+      - PPDD1_PASSWORD=${PPDD1_PASSWORD:?set PPDD1_PASSWORD in .env}
     volumes:
       # The REAL config (TLS verification on; edit `systems:` for your appliance).
       - ./config.yaml:/etc/ppdd_exporter/config.yaml:ro

@@ -4,7 +4,7 @@ The image is distroless and runs as a non-root user.
 
 ```bash
 docker run -d --name ppdd_exporter -p 9099:9099 \
-  -e DD01_PASSWORD=secret \
+  -e PPDD1_PASSWORD=secret \
   -v /etc/ppdd_exporter/config.yaml:/etc/ppdd_exporter/config.yaml:ro \
   ghcr.io/fjacquet/ppdd_exporter:latest
 ```
@@ -19,7 +19,7 @@ appliance alongside Prometheus and Grafana — the same stack as the laptop demo
 read from a gitignored `.env`, and with Grafana reachable from other machines.
 
 ```bash
-cp .env.example .env        # set DD01_PASSWORD, Grafana creds, and GF_SERVER_ROOT_URL
+cp .env.example .env        # set PPDD1_PASSWORD, Grafana creds, and GF_SERVER_ROOT_URL
 $EDITOR config.yaml         # set your appliance host(s) under `systems:`
 docker compose -f docker-compose.server.yml up -d
 ```

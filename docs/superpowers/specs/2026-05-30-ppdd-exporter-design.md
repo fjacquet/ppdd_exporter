@@ -125,7 +125,7 @@ systems:
   - name: dd-prod-01
     host: dd01.example.com   # :3009 implied
     username: ppdd-monitor
-    password: "${DD01_PASSWORD}"   # or passwordFile: /etc/ppdd_exporter/dd01.pass
+    password: "${PPDD1_PASSWORD}"   # or passwordFile: /etc/ppdd_exporter/dd01.pass
     insecureSkipVerify: true
 ```
 

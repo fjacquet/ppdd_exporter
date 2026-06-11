@@ -16,9 +16,9 @@ collection:
   timeout: "60s"          # per-system collection timeout
 systems:
   - name: dd-prod-01
-    host: "${DD01_HOSTNAME}"    # or a literal: dd01.example.com — :3009 implied
-    username: "${DD01_USERNAME}"  # a read-only/monitor DD user suffices
-    password: "${DD01_PASSWORD}"
+    host: "${PPDD1_HOSTNAME}"    # or a literal: dd01.example.com — :3009 implied
+    username: "${PPDD1_USERNAME}"  # a read-only/monitor DD user suffices
+    password: "${PPDD1_PASSWORD}"
     # insecureSkipVerify: true   # see warning below
 ```
 
@@ -27,7 +27,7 @@ systems:
     `${ENV_VAR}` for `host`, `username`, and `password` is a convenience for
     single-appliance deployments where you prefer to keep all secrets in a `.env` file
     (gitignored) rather than in `config.yaml`. For multi-appliance setups use distinct
-    variable names per system (e.g. `DD01_HOSTNAME`, `DD02_HOSTNAME`) or supply literal
+    variable names per system (e.g. `PPDD1_HOSTNAME`, `PPDD2_HOSTNAME`) or supply literal
     values directly in `config.yaml`.
 
 | Key | Default | Notes |

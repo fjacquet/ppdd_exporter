@@ -10,7 +10,7 @@ Full docs: built with MkDocs Material (see `mkdocs.yml`).
 
 ```bash
 make cli
-export DD01_PASSWORD='your-monitor-password'
+export PPDD1_PASSWORD='your-monitor-password'
 ./bin/ppdd_exporter --config config.yaml
 # metrics: http://localhost:9099/metrics   health: http://localhost:9099/health
 ```
