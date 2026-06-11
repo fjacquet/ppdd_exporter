@@ -8,9 +8,12 @@ collection:
   interval: "5m"
   timeout: "60s"
 systems:
+  # Single-system quickstart: set PPDD1_HOSTNAME, PPDD1_USERNAME, PPDD1_PASSWORD
+  # in the environment (or a .env file). config.yaml is the source of truth —
+  # for multiple systems add one entry per system (literal values or ${PPDD2_*} refs).
   - name: dd-prod-01
-    host: dd01.example.com
-    username: ppdd-monitor
+    host: "${PPDD1_HOSTNAME}"
+    username: "${PPDD1_USERNAME}"
     password: "${PPDD1_PASSWORD}"
     # insecureSkipVerify disables TLS certificate verification (man-in-the-middle
     # risk). Leave it off in production; only enable for dev/test against a DD with
