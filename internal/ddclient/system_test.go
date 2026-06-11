@@ -1,8 +1,10 @@
 package ddclient
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"sync/atomic"
@@ -11,8 +13,9 @@ import (
 
 const authToken = "test-token-123"
 
-// writeBytes avoids the Semgrep write-to-ResponseWriter rule.
-func writeBytes(w http.ResponseWriter, b []byte) { _, _ = w.Write(b) }
+// writeBytes streams a fixture body to the fake-appliance response (test-only;
+// no user input is reflected, so XSS does not apply).
+func writeBytes(w http.ResponseWriter, b []byte) { _, _ = io.Copy(w, bytes.NewReader(b)) }
 
 func newFakeDD(t *testing.T, logins *int32) *httptest.Server {
 	mux := http.NewServeMux()
@@ -72,6 +75,35 @@ func TestSystemClientAuthAndGet(t *testing.T) {
 	}
 	if logins != 1 {
 		t.Fatalf("logins = %d, want 1 (token should be reused)", logins)
+	}
+}
+
+func TestTraceDoesNotBreakCalls(t *testing.T) {
+	var logins int32
+	srv := newFakeDD(t, &logins)
+	defer srv.Close()
+
+	c := NewSystemClient(Config{
+		Name: "dd01", BaseURL: srv.URL, Username: "u", Password: "p",
+		HTTPClient: srv.Client(),
+		Trace:      true,
+	})
+	t.Cleanup(func() {
+		if err := c.Close(); err != nil {
+			t.Errorf("SystemClient.Close: %v", err)
+		}
+	})
+
+	var out struct {
+		PhysicalUsed float64 `json:"physical_used"`
+	}
+	// Exercises the OnAfterResponse trace hook on both the auth call (skipped)
+	// and the data call (logged); the decoded result must be unaffected.
+	if err := c.Get(context.Background(), "/rest/v1.0/system", &out); err != nil {
+		t.Fatalf("Get: %v", err)
+	}
+	if out.PhysicalUsed != 99 {
+		t.Fatalf("PhysicalUsed = %v, want 99", out.PhysicalUsed)
 	}
 }
 

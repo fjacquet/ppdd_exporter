@@ -8,6 +8,7 @@ import (
 	"sync"
 
 	"github.com/go-resty/resty/v2"
+	log "github.com/sirupsen/logrus"
 )
 
 // Config configures a SystemClient. HTTPClient is optional (tests inject the
@@ -19,6 +20,10 @@ type Config struct {
 	Password           string
 	InsecureSkipVerify bool
 	HTTPClient         *http.Client
+	// Trace logs every DD API response body (method, URL, status, body) for
+	// validating payload shapes against a live appliance. Headers are never
+	// logged, so the session token cannot leak. Verbose — debugging only.
+	Trace bool
 }
 
 // SystemClient is the live per-appliance DD REST client.
@@ -49,6 +54,22 @@ func NewSystemClient(cfg Config) *SystemClient {
 		}
 		return r != nil && r.StatusCode() >= 500
 	})
+	if cfg.Trace {
+		// Deliberately not resty's SetDebug: that dumps request headers including
+		// X-DD-AUTH-TOKEN. This logs only method/URL/status and the response body.
+		rc.OnAfterResponse(func(_ *resty.Client, r *resty.Response) error {
+			if r.Request.URL == cfg.BaseURL+authPath {
+				return nil // auth body is uninteresting; the token lives in a header
+			}
+			log.WithFields(log.Fields{
+				"system": cfg.Name,
+				"method": r.Request.Method,
+				"url":    r.Request.URL,
+				"status": r.StatusCode(),
+			}).Infof("API trace:\n%s", r.Body())
+			return nil
+		})
+	}
 	return &SystemClient{cfg: cfg, rc: rc}
 }
 

@@ -8,8 +8,10 @@ Guidance for working in `ppdd_exporter`.
 - `make tools` — install pinned dev/CI tooling (golangci-lint, cyclonedx-gomod, govulncheck).
 - `make ci` — gofmt check + vet + lint + race tests + govulncheck + build (the CI gate).
 - `make release-snapshot` — local GoReleaser dry-run (binaries + archives + SBOM + checksums).
-- Run: `./bin/ppdd_exporter --config config.yaml [--once] [--debug]`. Secrets are `${ENV}`
-  refs in `config.yaml` (or `passwordFile`).
+- Run: `./bin/ppdd_exporter --config config.yaml [--once] [--debug] [--trace]`. Secrets are
+  `${ENV}` refs in `config.yaml` (or `passwordFile`). `--once --debug` dumps every collected
+  sample (sorted, exposition style); `--trace` logs every DD API response body (never headers,
+  so the auth token cannot leak) for live-appliance payload validation.
 - Docs: `uvx --with mkdocs-material --with pymdown-extensions mkdocs build --strict`.
 
 ## Architecture

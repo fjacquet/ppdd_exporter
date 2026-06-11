@@ -4,8 +4,11 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"os/signal"
+	"sort"
+	"strings"
 	"sync"
 	"syscall"
 	"time"
@@ -23,23 +26,24 @@ var version = "dev"
 
 func main() {
 	var cfgPath string
-	var once, debug bool
+	var once, debug, trace bool
 	root := &cobra.Command{
 		Use:     "ppdd_exporter",
 		Version: version,
 		RunE: func(_ *cobra.Command, _ []string) error {
-			return run(cfgPath, once, debug)
+			return run(cfgPath, once, debug, trace)
 		},
 	}
 	root.Flags().StringVar(&cfgPath, "config", "config.yaml", "path to config file")
 	root.Flags().BoolVar(&once, "once", false, "run a single collection cycle and exit")
 	root.Flags().BoolVar(&debug, "debug", false, "verbose logging")
+	root.Flags().BoolVar(&trace, "trace", false, "log every DD API response body (live-appliance payload validation; very verbose)")
 	if err := root.Execute(); err != nil {
 		log.Fatal(err)
 	}
 }
 
-func run(cfgPath string, once, debug bool) error {
+func run(cfgPath string, once, debug, trace bool) error {
 	if debug {
 		log.SetLevel(log.DebugLevel)
 	}
@@ -53,12 +57,19 @@ func run(cfgPath string, once, debug bool) error {
 	defer stop()
 
 	if once {
-		clients := buildClients(cfg)
+		clients := buildClients(cfg, trace)
 		col := ppdd.NewCollector(clients, ppdd.Registry(), store, cfg.Collection.Interval, cfg.Collection.Timeout)
 		log.Info("running initial collection cycle")
-		col.CollectOnce(ctx)
+		snap := col.CollectOnce(ctx)
 		for _, c := range clients {
 			_ = c.Close()
+		}
+		if debug {
+			dumpSamples(snap)
+		}
+		for _, s := range snap.Systems {
+			log.WithFields(log.Fields{"system": s.System, "ok": s.OK, "samples": len(s.Samples)}).
+				Info("collection done")
 		}
 		return nil
 	}
@@ -66,7 +77,7 @@ func run(cfgPath string, once, debug bool) error {
 	// runner owns the live collection loop and its clients so config reloads can
 	// rebuild and swap them in place. The SnapshotStore is shared and never
 	// replaced, so /metrics and /health keep serving across a swap.
-	runner := newCollectorRunner(store)
+	runner := newCollectorRunner(store, trace)
 	defer runner.stop()
 	log.Info("running initial collection cycle")
 	runner.apply(ctx, cfg)
@@ -130,14 +141,15 @@ func run(cfgPath string, once, debug bool) error {
 // the mutex only guards the swap against a concurrent stop() at shutdown.
 type collectorRunner struct {
 	store   *ppdd.SnapshotStore
+	trace   bool
 	mu      sync.Mutex
 	clients []ddclient.Client
 	cancel  context.CancelFunc
 	wg      sync.WaitGroup
 }
 
-func newCollectorRunner(store *ppdd.SnapshotStore) *collectorRunner {
-	return &collectorRunner{store: store}
+func newCollectorRunner(store *ppdd.SnapshotStore, trace bool) *collectorRunner {
+	return &collectorRunner{store: store, trace: trace}
 }
 
 // apply stops any running loop, then builds clients + a collector from cfg, runs one
@@ -146,7 +158,7 @@ func newCollectorRunner(store *ppdd.SnapshotStore) *collectorRunner {
 func (r *collectorRunner) apply(parent context.Context, cfg *config.Config) {
 	r.shutdownCurrent()
 
-	clients := buildClients(cfg)
+	clients := buildClients(cfg, r.trace)
 	col := ppdd.NewCollector(clients, ppdd.Registry(), r.store, cfg.Collection.Interval, cfg.Collection.Timeout)
 	loopCtx, cancel := context.WithCancel(parent)
 
@@ -182,15 +194,36 @@ func (r *collectorRunner) shutdownCurrent() {
 func (r *collectorRunner) stop() { r.shutdownCurrent() }
 
 // buildClients constructs one DD client per configured system.
-func buildClients(cfg *config.Config) []ddclient.Client {
+func buildClients(cfg *config.Config, trace bool) []ddclient.Client {
 	clients := make([]ddclient.Client, 0, len(cfg.Systems))
 	for _, s := range cfg.Systems {
 		clients = append(clients, ddclient.NewSystemClient(ddclient.Config{
 			Name: s.Name, BaseURL: s.BaseURL(), Username: s.Username,
 			Password: s.Password, InsecureSkipVerify: s.InsecureSkipVerify,
+			Trace: trace,
 		}))
 	}
 	return clients
+}
+
+// dumpSamples prints every collected sample in Prometheus exposition style,
+// sorted, so a `--once --debug` run against a live appliance can be diffed
+// against docs/metrics.md to spot silently-absent metrics.
+func dumpSamples(snap *ppdd.Snapshot) {
+	var lines []string
+	for _, ss := range snap.Systems {
+		for _, s := range ss.Samples {
+			parts := make([]string, 0, len(s.Labels))
+			for _, l := range s.Labels {
+				parts = append(parts, fmt.Sprintf("%s=%q", l.Key, l.Value))
+			}
+			lines = append(lines, fmt.Sprintf("%s{%s} %v", s.Name, strings.Join(parts, ","), s.Value))
+		}
+	}
+	sort.Strings(lines)
+	for _, l := range lines {
+		fmt.Println(l)
+	}
 }
 
 func healthHandler(w http.ResponseWriter, store *ppdd.SnapshotStore) {

@@ -6,6 +6,14 @@ All notable changes to this project are documented here. The format is based on
 
 ## [Unreleased]
 
+### Added
+- **`--trace` flag and `--once --debug` sample dump for live-appliance validation.**
+  `--trace` logs every DD API response body (method, URL, status, payload) via a resty
+  `OnAfterResponse` hook — request headers are never logged, so the `X-DD-AUTH-TOKEN`
+  session token cannot leak, and the auth endpoint's response is skipped entirely.
+  `--once --debug` now also prints every collected sample sorted in Prometheus
+  exposition style, diffable against `docs/metrics.md`.
+
 ## [0.3.0] - 2026-06-05
 
 ### Security
