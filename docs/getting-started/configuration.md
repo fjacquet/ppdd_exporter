@@ -44,6 +44,27 @@ systems:
     it for dev/test against an appliance with a self-signed cert (the Compose demo's
     `config.demo.yaml` uses it to reach the bundled `mockdd`).
 
+## Secrets
+
+`${ENV_VAR}` references are interpolated in **host**, **username**, and **password**
+at config-load time. A referenced variable that is not set causes an immediate error
+(fail fast — a typo in a secret name shows up at startup, not as repeated auth
+failures).
+
+Passwords additionally support a file-based alternative:
+
+1. `${ENV_VAR}` inside `password` — variable must be set.
+2. `passwordFile` — read and trimmed when `password` resolves empty.
+
+### .env loading
+
+The exporter binary loads a `.env` file natively at startup — from the working
+directory first, then next to the config file — so `cp .env.example .env` works
+for bare-metal and systemd runs exactly like it does under docker compose.
+Already-set environment variables **always take precedence** over `.env` values,
+so secret injection (systemd `Environment=`, Kubernetes secrets, CI) can never be
+shadowed by a stray file.
+
 ## Hot reload
 
 Config reloads on **SIGHUP** or when the file changes (the watcher follows the parent

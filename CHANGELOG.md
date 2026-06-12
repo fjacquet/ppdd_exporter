@@ -7,6 +7,12 @@ All notable changes to this project are documented here. The format is based on
 ## [Unreleased]
 
 ### Added
+- **Native `.env` loading at startup (no-override semantics).** `ppdd_exporter` now
+  calls `config.LoadDotEnv` before `config.Load`, trying `./.env` then the config
+  file's directory. Already-set environment variables always win (godotenv
+  no-override), so secret injection via systemd `Environment=`, Kubernetes secrets,
+  or CI environment can never be shadowed by a stray `.env` file. Mirrors the
+  `obs_exporter` implementation (ADR-0005 pattern).
 - **`--trace` flag and `--once --debug` sample dump for live-appliance validation.**
   `--trace` logs every DD API response body (method, URL, status, payload) via a resty
   `OnAfterResponse` hook — request headers are never logged, so the `X-DD-AUTH-TOKEN`
