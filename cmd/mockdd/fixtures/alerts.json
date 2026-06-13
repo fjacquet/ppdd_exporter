@@ -1,7 +1,8 @@
 {
-  "alert": [
-    { "id": "a1", "severity": "warning",  "class": "capacity" },
-    { "id": "a2", "severity": "critical", "class": "hardware" }
+  "alert_list": [
+    { "id": "a1", "severity": "WARNING",  "class": "capacity" },
+    { "id": "a2", "severity": "CRITICAL", "class": "HardwareFailure" },
+    { "id": "a3", "severity": "CRITICAL", "class": "HardwareFailure" }
   ],
-  "paging_info": { "current_page": 0, "page_entries": 2, "total_entries": 2, "page_size": 200 }
+  "paging_info": { "current_page": 0, "page_entries": 3, "total_entries": 3, "page_size": 200 }
 }

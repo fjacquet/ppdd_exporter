@@ -1,7 +1,12 @@
 {
   "mtree": [
-    { "id": "backup", "name": "/data/col1/backup", "is_degraded": "full", "mtree_rl_detail": { "rl_status": "enabled" }, "quota_soft_limit_bytes": 10000000000, "quota_hard_limit_bytes": 12000000000 },
-    { "id": "archive", "name": "/data/col1/archive", "is_degraded": "degraded", "mtree_rl_detail": { "rl_status": "never-enabled" }, "quota_soft_limit_bytes": 0, "quota_hard_limit_bytes": 0 }
+    {
+      "id": "%2Fdata%2Fcol1%2Fbackup1",
+      "name": "/data/col1/backup1",
+      "is_degraded": "degraded",
+      "mtree_rl_detail": { "rl_status": "enabled" },
+      "quota_config": { "soft_limit": 10000000000, "hard_limit": 12000000000 }
+    }
   ],
-  "paging_info": { "current_page": 0, "page_entries": 2, "total_entries": 2, "page_size": 200 }
+  "paging_info": { "current_page": 0, "page_entries": 1, "total_entries": 1, "page_size": 200 }
 }
