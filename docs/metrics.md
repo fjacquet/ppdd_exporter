@@ -6,24 +6,27 @@ when a module collected cleanly, 0 otherwise.
 ## capacity
 - `ppdd_filesystem_total_bytes` / `ppdd_filesystem_used_bytes` / `ppdd_filesystem_available_bytes` (from `/system`)
 - `ppdd_compression_factor` (from `/system`)
-- _Provisional (no source in the 7.3 API guide; best-effort from `/file-system`):_
-  `ppdd_compression_global_factor` / `ppdd_compression_local_factor` / `ppdd_compression_total_factor`,
-  `ppdd_filesystem_cleaning_running` (1 while GC runs)
+- `ppdd_filesystem_cleaning_running` (1 while GC runs; from `/file-systems` `fs_clean_status`)
 
 ## mtrees (labels: mtree)
 - `ppdd_mtree_logical_used_bytes` / `ppdd_mtree_compression_factor` (per-MTree v2.0 stats, latest epoch)
 - `ppdd_mtree_degraded` (1 if degraded) / `ppdd_mtree_retention_lock_enabled` (1 if retention lock active)
-- _Provisional:_ `ppdd_mtree_physical_used_bytes` (mapped to `post_comp_written`),
-  `ppdd_mtree_quota_soft_limit_bytes` / `ppdd_mtree_quota_hard_limit_bytes`
+- `ppdd_mtree_physical_used_bytes` (post-comp written), `ppdd_mtree_quota_soft_limit_bytes` / `ppdd_mtree_quota_hard_limit_bytes` (from `quota_config`)
 
-## replication (labels: source, destination; +state on the state metric)
-- `ppdd_replication_state{state}` (1 for the active state)
-- `ppdd_replication_sync_lag_seconds`
-- `ppdd_replication_precomp_bytes_remaining`
-- `ppdd_replication_throughput_bytes_per_second`
+## mtree_replication (labels: source, destination; +state on the state metric)
+- `ppdd_mtree_replication_state{state}` (1 for the current state; `state` ∈ CONNECTING|UNINITIALIZED|INITIALIZING|NORMAL|RESYNCING|RECOVERING)
+- `ppdd_mtree_replication_connected` (1 if connected)
+- `ppdd_mtree_replication_need_resync` (1 if a resync is required)
+- `ppdd_mtree_replication_enabled` (1 if the context is enabled)
+
+## file_replication (labels: context; +status on the status metric)
+- `ppdd_file_replication_network_bytes`
+- `ppdd_file_replication_logical_replicated_bytes`
+- `ppdd_file_replication_active_files`
+- `ppdd_file_replication_status{status}` (1 for the current status; `status` ∈ completed|error|warning|unknown)
 
 ## health
 - `ppdd_disk_failed{disk}` (1 if failed)
-- `ppdd_alerts_active{severity, class}` (active alerts only; fetched with `is_active=true`)
+- `ppdd_alerts_active{severity, class}` (active alerts only, `is_active=true`; `severity` is the DD enum casing, e.g. `CRITICAL`)
 - `ppdd_system_cpu_percent`
 - `ppdd_system_read_bytes_per_second` / `ppdd_system_write_bytes_per_second`

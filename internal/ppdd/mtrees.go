@@ -7,7 +7,7 @@ import (
 	"github.com/fjacquet/ppdd_exporter/internal/ddclient"
 )
 
-// mtreeListItem is the documented v3.0 mtree metadata.
+// mtreeListItem is the validated 8.7.0 v3.0 mtree metadata (schema mtreeInfoDetail_3_0).
 type mtreeListItem struct {
 	ID            string `json:"id"`
 	Name          string `json:"name"`
@@ -21,7 +21,7 @@ type mtreeListItem struct {
 	} `json:"quota_config"` // validated 8.7.0: schema quotaConfig
 }
 
-// mtreeStatsResp is the documented v2.0 per-MTree capacity stats (guide pp.34-36).
+// mtreeStatsResp is the validated 8.7.0 v2.0 per-MTree capacity stats.
 type mtreeStatsResp struct {
 	StatsCapacity []struct {
 		CollectionEpoch   int64   `json:"collection_epoch"`
@@ -84,7 +84,7 @@ func (MTrees) Collect(ctx context.Context, c ddclient.Client) ([]Sample, error) 
 	return out, nil
 }
 
-// mtreeUsage fetches documented per-MTree usage from the latest collection_epoch
+// mtreeUsage fetches per-MTree usage (validated 8.7.0) from the latest collection_epoch
 // (best-effort: a failure drops only this MTree's usage samples). N+1 requests —
 // one per MTree; bounded concurrency is a future optimization.
 func mtreeUsage(ctx context.Context, c ddclient.Client, mt mtreeListItem) []Sample {
