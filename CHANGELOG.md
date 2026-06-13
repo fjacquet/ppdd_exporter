@@ -6,6 +6,18 @@ All notable changes to this project are documented here. The format is based on
 
 ## [Unreleased]
 
+### Changed
+- Validated and corrected all DD API mappings against the PowerProtect DD 8.7.0 OpenAPI
+  spec (`docs/swagger/13345-8.7.0.json`):
+  - Corrected endpoints: disks → `/api/v1/.../storage/disks`, performance →
+    `/api/v3/.../stats/performance`, file-systems path (plural).
+  - Fixed fields: alerts array key `alert_list`, mtree quota via `quota_config`,
+    disk failed state `FAILED`, mtree compression from the top-level factor.
+  - **Breaking:** removed `ppdd_compression_{global,local,total}_factor` (no source on
+    8.7.0); replaced the `ppdd_replication_*` metrics with `ppdd_mtree_replication_*`
+    (posture) and `ppdd_file_replication_*` (stats). Alert label values now use DD enum
+    casing (e.g. `CRITICAL`).
+
 ### Added
 - **Native `.env` loading at startup (no-override semantics).** `ppdd_exporter` now
   calls `config.LoadDotEnv` before `config.Load`, trying `./.env` then the config

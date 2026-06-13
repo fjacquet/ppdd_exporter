@@ -14,7 +14,7 @@ const (
 	maxPages = 100 // safety cap to bound a runaway list
 )
 
-// pagingInfo is the DD list-response envelope (guide pp.17,20).
+// pagingInfo is the DD list-response envelope (schema `paging`, validated 8.7.0).
 type pagingInfo struct {
 	CurrentPage  int `json:"current_page"`
 	PageEntries  int `json:"page_entries"`

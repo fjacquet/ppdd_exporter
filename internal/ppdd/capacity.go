@@ -6,7 +6,7 @@ import (
 	"github.com/fjacquet/ppdd_exporter/internal/ddclient"
 )
 
-// systemResp is the documented shape of GET /rest/v1.0/system (guide pp.11-12).
+// systemResp is the validated 8.7.0 shape of GET /rest/v1.0/system (schema systemInfoDetail).
 type systemResp struct {
 	PhysicalCapacity struct {
 		Total     float64 `json:"total"`
