@@ -17,7 +17,7 @@ func (Health) Collect(ctx context.Context, c ddclient.Client) ([]Sample, error) 
 	var out []Sample
 	out = append(out, healthDisks(ctx, c)...)
 	out = append(out, healthAlerts(ctx, c)...)
-	out = append(out, healthSystemStats(ctx, c)...)
+	out = append(out, healthSystemPerformance(ctx, c)...)
 	return out, nil
 }
 
@@ -75,18 +75,31 @@ func healthAlerts(ctx context.Context, c ddclient.Client) []Sample {
 	return out
 }
 
-func healthSystemStats(ctx context.Context, c ddclient.Client) []Sample {
+// healthSystemPerformance reads the latest-epoch system performance sample
+// (best-effort: a failure or empty series drops only these samples).
+func healthSystemPerformance(ctx context.Context, c ddclient.Client) []Sample {
 	var r struct {
-		CPUAvgPercent    float64 `json:"cpu_avg_percent"`
-		ReadBytesPerSec  float64 `json:"read_bytes_per_second"`
-		WriteBytesPerSec float64 `json:"write_bytes_per_second"`
+		StatsPerformance []struct {
+			CollectionEpoch       int64   `json:"collectionEpoch"`
+			AverageCPUUtilization float64 `json:"averageCpuUtilization"`
+			Throughput            struct {
+				Read  float64 `json:"read"`
+				Write float64 `json:"write"`
+			} `json:"throughput"`
+		} `json:"statsPerformance"`
 	}
-	if err := c.Get(ctx, pathSystemStats, &r); err != nil {
+	if err := c.Get(ctx, pathPerformance, &r); err != nil || len(r.StatsPerformance) == 0 {
 		return nil
 	}
+	latest := r.StatsPerformance[0]
+	for _, s := range r.StatsPerformance[1:] {
+		if s.CollectionEpoch > latest.CollectionEpoch {
+			latest = s
+		}
+	}
 	return []Sample{
-		{Name: "ppdd_system_cpu_percent", Value: r.CPUAvgPercent},
-		{Name: "ppdd_system_read_bytes_per_second", Value: r.ReadBytesPerSec},
-		{Name: "ppdd_system_write_bytes_per_second", Value: r.WriteBytesPerSec},
+		{Name: "ppdd_system_cpu_percent", Value: latest.AverageCPUUtilization},
+		{Name: "ppdd_system_read_bytes_per_second", Value: latest.Throughput.Read},
+		{Name: "ppdd_system_write_bytes_per_second", Value: latest.Throughput.Write},
 	}
 }
