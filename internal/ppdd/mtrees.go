@@ -7,8 +7,7 @@ import (
 	"github.com/fjacquet/ppdd_exporter/internal/ddclient"
 )
 
-// mtreeListItem is the documented v3.0 mtree metadata. Quota fields are
-// PROVISIONAL (not shown in the guide's mtree sample) and kept best-effort.
+// mtreeListItem is the documented v3.0 mtree metadata.
 type mtreeListItem struct {
 	ID            string `json:"id"`
 	Name          string `json:"name"`
@@ -16,22 +15,24 @@ type mtreeListItem struct {
 	MTreeRLDetail struct {
 		RLStatus string `json:"rl_status"`
 	} `json:"mtree_rl_detail"`
-	QuotaSoftLimit float64 `json:"quota_soft_limit_bytes"` // PROVISIONAL
-	QuotaHardLimit float64 `json:"quota_hard_limit_bytes"` // PROVISIONAL
+	QuotaConfig struct {
+		SoftLimit float64 `json:"soft_limit"`
+		HardLimit float64 `json:"hard_limit"`
+	} `json:"quota_config"` // validated 8.7.0: schema quotaConfig
 }
 
 // mtreeStatsResp is the documented v2.0 per-MTree capacity stats (guide pp.34-36).
 type mtreeStatsResp struct {
 	StatsCapacity []struct {
-		CollectionEpoch   int64 `json:"collection_epoch"`
+		CollectionEpoch   int64   `json:"collection_epoch"`
+		CompressionFactor float64 `json:"compression_factor"` // validated 8.7.0: top-level
 		TierCapacityUsage []struct {
 			LogicalCapacity struct {
 				Used float64 `json:"used"`
 			} `json:"logical_capacity"`
 		} `json:"tier_capacity_usage"`
 		TierDataWritten []struct {
-			CompressionFactor float64 `json:"compression_factor"`
-			PostCompWritten   float64 `json:"post_comp_written"`
+			PostCompWritten float64 `json:"post_comp_written"`
 		} `json:"tier_data_written"`
 	} `json:"stats_capacity"`
 }
@@ -75,8 +76,8 @@ func (MTrees) Collect(ctx context.Context, c ddclient.Client) ([]Sample, error) 
 		out = append(out,
 			Sample{Name: "ppdd_mtree_degraded", Labels: lbl, Value: degraded},
 			Sample{Name: "ppdd_mtree_retention_lock_enabled", Labels: lbl, Value: rl},
-			Sample{Name: "ppdd_mtree_quota_soft_limit_bytes", Labels: lbl, Value: mt.QuotaSoftLimit},
-			Sample{Name: "ppdd_mtree_quota_hard_limit_bytes", Labels: lbl, Value: mt.QuotaHardLimit},
+			Sample{Name: "ppdd_mtree_quota_soft_limit_bytes", Labels: lbl, Value: mt.QuotaConfig.SoftLimit},
+			Sample{Name: "ppdd_mtree_quota_hard_limit_bytes", Labels: lbl, Value: mt.QuotaConfig.HardLimit},
 		)
 		out = append(out, mtreeUsage(ctx, c, mt)...)
 	}
@@ -97,24 +98,18 @@ func mtreeUsage(ctx context.Context, c ddclient.Client, mt mtreeListItem) []Samp
 			latest = s
 		}
 	}
-	var logicalUsed, comp, postComp float64
+	var logicalUsed, postComp float64
 	for _, t := range latest.TierCapacityUsage {
 		logicalUsed += t.LogicalCapacity.Used
 	}
-	// Aggregate compression across tiers, weighted by post-comp bytes: the global
-	// factor is total pre-comp / total post-comp = Σ(cf_i·post_i) / Σ(post_i).
-	var weightedComp float64
 	for _, t := range latest.TierDataWritten {
 		postComp += t.PostCompWritten
-		weightedComp += t.CompressionFactor * t.PostCompWritten
 	}
-	if postComp > 0 {
-		comp = weightedComp / postComp
-	}
+	comp := latest.CompressionFactor
 	lbl := []Label{{Key: "mtree", Value: mt.Name}}
 	return []Sample{
 		{Name: "ppdd_mtree_logical_used_bytes", Labels: lbl, Value: logicalUsed},
 		{Name: "ppdd_mtree_compression_factor", Labels: lbl, Value: comp},
-		{Name: "ppdd_mtree_physical_used_bytes", Labels: lbl, Value: postComp}, // PROVISIONAL: post_comp_written
+		{Name: "ppdd_mtree_physical_used_bytes", Labels: lbl, Value: postComp},
 	}
 }
