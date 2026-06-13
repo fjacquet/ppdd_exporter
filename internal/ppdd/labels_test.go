@@ -14,7 +14,7 @@ func buildFullMock(t *testing.T) *ddclient.Mock {
 	m := loadHealthMock(t)
 	for path, file := range map[string]string{
 		pathSystem:      "testdata/system.json",
-		pathFileSystem:  "testdata/file-system.json",
+		pathFileSystem:  "testdata/file-systems.json",
 		pathMTrees:      "testdata/mtrees.json",
 		pathReplication: "testdata/replications.json",
 		mtreeStatsPath("%2Fdata%2Fcol1%2Fbackup1"): "testdata/mtree-stats.json",
