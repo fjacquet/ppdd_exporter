@@ -5,8 +5,7 @@
       "name": "/data/col1/backup1",
       "is_degraded": "degraded",
       "mtree_rl_detail": { "rl_status": "enabled" },
-      "quota_soft_limit_bytes": 10000000000,
-      "quota_hard_limit_bytes": 12000000000
+      "quota_config": { "soft_limit": 10000000000, "hard_limit": 12000000000 }
     }
   ],
   "paging_info": { "current_page": 0, "page_entries": 1, "total_entries": 1, "page_size": 200 }
