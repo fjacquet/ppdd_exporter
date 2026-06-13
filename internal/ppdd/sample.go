@@ -25,6 +25,14 @@ func (s Sample) LabelValue(key string) string {
 	return ""
 }
 
+// boolGauge maps a boolean to the Prometheus 1/0 gauge convention.
+func boolGauge(b bool) float64 {
+	if b {
+		return 1
+	}
+	return 0
+}
+
 // WithSystem returns a copy with a leading {system=name} label. Collectors emit
 // system-agnostic samples; the collection loop stamps the system identity.
 func (s Sample) WithSystem(name string) Sample {
