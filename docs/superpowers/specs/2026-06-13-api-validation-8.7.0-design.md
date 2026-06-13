@@ -2,7 +2,7 @@
 
 **Date:** 2026-06-13
 **Status:** Approved (design); implementation plan pending
-**Source of truth:** PowerProtect DD 8.7.0 OpenAPI 3.1 spec (`13345-8.7.0.json`, 211 paths, 751 schemas)
+**Source of truth:** PowerProtect DD 8.7.0 OpenAPI 3.1 spec, checked in at `docs/swagger/13345-8.7.0.json` (211 paths, 751 schemas)
 
 ## Problem
 
