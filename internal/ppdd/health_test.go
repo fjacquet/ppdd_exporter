@@ -35,7 +35,7 @@ func TestHealthCollect(t *testing.T) {
 		switch {
 		case s.Name == "ppdd_disk_failed" && s.LabelValue("disk") == "1b":
 			seen["disk_failed"] = s.Value
-		case s.Name == "ppdd_alerts_active" && s.LabelValue("severity") == "critical":
+		case s.Name == "ppdd_alerts_active" && s.LabelValue("severity") == "CRITICAL" && s.LabelValue("class") == "HardwareFailure":
 			seen["crit"] = s.Value
 		case s.Name == "ppdd_system_cpu_percent":
 			seen["cpu"] = s.Value

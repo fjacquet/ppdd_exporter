@@ -47,16 +47,16 @@ func healthAlerts(ctx context.Context, c ddclient.Client) []Sample {
 	counts := map[alertKey]float64{}
 	err := paginate(ctx, c, pathAlerts, "is_active=true", func(page json.RawMessage) (pagingInfo, error) {
 		var r struct {
-			Alert []struct {
+			Alerts []struct {
 				Severity string `json:"severity"`
 				Class    string `json:"class"`
-			} `json:"alert"`
+			} `json:"alert_list"`
 			PagingInfo pagingInfo `json:"paging_info"`
 		}
 		if err := json.Unmarshal(page, &r); err != nil {
 			return pagingInfo{}, err
 		}
-		for _, a := range r.Alert {
+		for _, a := range r.Alerts {
 			counts[alertKey{a.Severity, a.Class}]++
 		}
 		return r.PagingInfo, nil
