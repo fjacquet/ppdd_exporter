@@ -54,9 +54,9 @@ func TestAlertsPaginationCollectsAllPages(t *testing.T) {
 	m := ddclient.NewMock("dd01")
 	// page_size 2, total 3 -> two pages. is_active=true is appended by the collector.
 	m.SetJSON("/rest/v1.0/dd-systems/0/alerts?page=0&size=200&is_active=true",
-		`{"paging_info":{"current_page":0,"page_entries":2,"total_entries":3,"page_size":2},"alert":[{"severity":"warning","class":"capacity"},{"severity":"warning","class":"capacity"}]}`)
+		`{"paging_info":{"current_page":0,"page_entries":2,"total_entries":3,"page_size":2},"alert_list":[{"severity":"WARNING","class":"capacity"},{"severity":"WARNING","class":"capacity"}]}`)
 	m.SetJSON("/rest/v1.0/dd-systems/0/alerts?page=1&size=200&is_active=true",
-		`{"paging_info":{"current_page":1,"page_entries":1,"total_entries":3,"page_size":2},"alert":[{"severity":"warning","class":"capacity"}]}`)
+		`{"paging_info":{"current_page":1,"page_entries":1,"total_entries":3,"page_size":2},"alert_list":[{"severity":"WARNING","class":"capacity"}]}`)
 
 	got := healthAlerts(context.Background(), m)
 	var total float64
