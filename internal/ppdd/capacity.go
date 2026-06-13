@@ -16,19 +16,15 @@ type systemResp struct {
 	CompressionFactor float64 `json:"compression_factor"`
 }
 
-// fileSystemResp is PROVISIONAL (not in the 7.3 guide). Retained only for the
-// compression split and GC cleaning state, fetched best-effort.
+// fileSystemResp is the validated 8.7.0 /file-systems shape (schema filesysInfo).
+// Only the GC clean state is consumed; fetched best-effort.
 type fileSystemResp struct {
-	GlobalCompression float64 `json:"global_compression_factor"`
-	LocalCompression  float64 `json:"local_compression_factor"`
-	TotalCompression  float64 `json:"total_compression_factor"`
-	Cleaning          struct {
-		Status string `json:"status"`
-	} `json:"cleaning"`
+	CleanStatus string `json:"fs_clean_status"` // enum: clean|running|inactive|waiting
 }
 
-// Capacity collects filesystem capacity and compression. Documented values come
-// from /system; the compression split and GC state are provisional best-effort.
+// Capacity collects filesystem capacity and compression from the documented
+// /system endpoint; the GC clean state comes from the validated /file-systems
+// endpoint, fetched best-effort.
 type Capacity struct{}
 
 func (Capacity) Name() string { return "capacity" }
@@ -47,21 +43,18 @@ func (Capacity) Collect(ctx context.Context, c ddclient.Client) ([]Sample, error
 	return append(out, capacityProvisional(ctx, c)...), nil
 }
 
-// capacityProvisional fetches the undocumented /file-system extras (best-effort:
-// a failure drops only these samples, never the whole collector).
+// capacityProvisional fetches the /file-systems clean state (best-effort: a failure
+// drops only this sample, never the whole collector).
 func capacityProvisional(ctx context.Context, c ddclient.Client) []Sample {
 	var fs fileSystemResp
 	if err := c.Get(ctx, pathFileSystem, &fs); err != nil {
 		return nil
 	}
 	cleaning := 0.0
-	if fs.Cleaning.Status == "running" {
+	if fs.CleanStatus == "running" {
 		cleaning = 1
 	}
 	return []Sample{
-		{Name: "ppdd_compression_global_factor", Value: fs.GlobalCompression},
-		{Name: "ppdd_compression_local_factor", Value: fs.LocalCompression},
-		{Name: "ppdd_compression_total_factor", Value: fs.TotalCompression},
 		{Name: "ppdd_filesystem_cleaning_running", Value: cleaning},
 	}
 }

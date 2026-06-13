@@ -12,7 +12,7 @@ func TestCapacityCollect(t *testing.T) {
 	m := ddclient.NewMock("dd01")
 	for path, file := range map[string]string{
 		pathSystem:     "testdata/system.json",
-		pathFileSystem: "testdata/file-system.json",
+		pathFileSystem: "testdata/file-systems.json",
 	} {
 		b, err := os.ReadFile(file)
 		if err != nil {
@@ -30,9 +30,6 @@ func TestCapacityCollect(t *testing.T) {
 		"ppdd_filesystem_used_bytes":       40000000000,
 		"ppdd_filesystem_available_bytes":  60000000000,
 		"ppdd_compression_factor":          9.9,
-		"ppdd_compression_global_factor":   5.5,
-		"ppdd_compression_local_factor":    1.8,
-		"ppdd_compression_total_factor":    9.9,
 		"ppdd_filesystem_cleaning_running": 1,
 	}
 	seen := map[string]float64{}
@@ -44,6 +41,11 @@ func TestCapacityCollect(t *testing.T) {
 			t.Errorf("%s = %v, want %v", name, seen[name], v)
 		}
 	}
+	for _, gone := range []string{"ppdd_compression_global_factor", "ppdd_compression_local_factor", "ppdd_compression_total_factor"} {
+		if _, ok := seen[gone]; ok {
+			t.Errorf("metric %s should no longer be emitted", gone)
+		}
+	}
 }
 
 func TestCapacityProvisionalIsBestEffort(t *testing.T) {
@@ -52,11 +54,11 @@ func TestCapacityProvisionalIsBestEffort(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	m.SetJSON(pathSystem, string(b)) // no file-system registered
+	m.SetJSON(pathSystem, string(b)) // no /file-systems registered
 
 	got, err := Capacity{}.Collect(context.Background(), m)
 	if err != nil {
-		t.Fatalf("Collect must not fail when provisional /file-system is absent: %v", err)
+		t.Fatalf("Collect must not fail when /file-systems is absent: %v", err)
 	}
 	var hasDocumented bool
 	for _, s := range got {

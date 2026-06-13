@@ -13,7 +13,7 @@ const (
 	pathReplication = "/rest/v1.0/dd-systems/0/replications"       // PROVISIONAL: not in guide
 	pathDisks       = "/rest/v1.0/dd-systems/0/hardware/disks"     // PROVISIONAL: not in guide
 	pathSystemStats = "/rest/v1.0/dd-systems/0/stats/system-stats" // PROVISIONAL: not in guide
-	pathFileSystem  = "/rest/v1.0/dd-systems/0/file-system"        // PROVISIONAL: cleaning + compression split
+	pathFileSystem  = "/rest/v1.0/dd-systems/0/file-systems"       // validated 8.7.0: filesysInfo (clean state)
 )
 
 // mtreeStatsPath returns the per-MTree capacity stats path (v2.0, documented).
