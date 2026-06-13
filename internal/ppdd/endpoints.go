@@ -11,7 +11,7 @@ const (
 	pathAlerts      = "/rest/v1.0/dd-systems/0/alerts"             // documented; query is_active=true
 	pathMTrees      = "/rest/v3.0/dd-systems/0/mtrees"             // documented; v3.0 metadata list
 	pathReplication = "/rest/v1.0/dd-systems/0/replications"       // PROVISIONAL: not in guide
-	pathDisks       = "/rest/v1.0/dd-systems/0/hardware/disks"     // PROVISIONAL: not in guide
+	pathDisks       = "/api/v1/dd-systems/0/storage/disks"         // validated 8.7.0: schema DiskInfos
 	pathSystemStats = "/rest/v1.0/dd-systems/0/stats/system-stats" // PROVISIONAL: not in guide
 	pathFileSystem  = "/rest/v1.0/dd-systems/0/file-systems"       // validated 8.7.0: filesysInfo (clean state)
 )
