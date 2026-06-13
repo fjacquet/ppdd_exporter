@@ -1,4 +1,4 @@
-{ "disk": [
-  { "id": "1a", "state": "ok" },
-  { "id": "1b", "state": "failed" }
+{ "diskInfo": [
+  { "id": "1a", "status": "IN_USE" },
+  { "id": "1b", "status": "FAILED" }
 ] }

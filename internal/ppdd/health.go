@@ -23,18 +23,18 @@ func (Health) Collect(ctx context.Context, c ddclient.Client) ([]Sample, error) 
 
 func healthDisks(ctx context.Context, c ddclient.Client) []Sample {
 	var r struct {
-		Disk []struct {
-			ID    string `json:"id"`
-			State string `json:"state"`
-		} `json:"disk"`
+		DiskInfo []struct {
+			ID     string `json:"id"`
+			Status string `json:"status"` // enum DiskStatusEnum; FAILED == failed
+		} `json:"diskInfo"`
 	}
 	if err := c.Get(ctx, pathDisks, &r); err != nil {
 		return nil
 	}
 	var out []Sample
-	for _, d := range r.Disk {
+	for _, d := range r.DiskInfo {
 		failed := 0.0
-		if d.State == "failed" {
+		if d.Status == "FAILED" {
 			failed = 1
 		}
 		out = append(out, Sample{Name: "ppdd_disk_failed", Labels: []Label{{Key: "disk", Value: d.ID}}, Value: failed})
