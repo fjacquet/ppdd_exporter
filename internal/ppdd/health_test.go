@@ -14,7 +14,7 @@ func loadHealthMock(t *testing.T) *ddclient.Mock {
 	for path, file := range map[string]string{
 		pathDisks:       "testdata/disks.json",
 		pathAlerts:      "testdata/alerts.json",
-		pathSystemStats: "testdata/system-stats.json",
+		pathPerformance: "testdata/performance.json",
 	} {
 		b, err := os.ReadFile(file)
 		if err != nil {
@@ -47,8 +47,8 @@ func TestHealthCollect(t *testing.T) {
 	if seen["crit"] != 2 {
 		t.Errorf("critical alerts = %v, want 2", seen["crit"])
 	}
-	if seen["cpu"] != 37.5 {
-		t.Errorf("cpu = %v, want 37.5", seen["cpu"])
+	if seen["cpu"] != 38 {
+		t.Errorf("cpu = %v, want 38", seen["cpu"])
 	}
 }
 
