@@ -55,6 +55,7 @@ The list `paging` envelope (`current_page/page_entries/total_entries/page_size`)
 | `cmd/mockdd/main.go` | demo routes | modify |
 | `cmd/mockdd/fixtures/*.json` | demo fixtures | modify/rename to match |
 | `docs/metrics.md` | metric reference | modify |
+| `grafana/dashboards/ppdd-overview.json` | demo dashboard panels | modify |
 | `CHANGELOG.md` | changelog | modify |
 
 ---
@@ -1131,6 +1132,49 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 
 ---
 
+## Task 9b: Grafana dashboard — repoint dropped/renamed metrics
+
+The demo dashboard `grafana/dashboards/ppdd-overview.json` references three dropped
+compression-split metrics and the three old `ppdd_replication_*` metrics. Panels that
+query removed metrics render empty, so they must be repointed to the corrected metric set.
+
+**Files:**
+- Modify: `grafana/dashboards/ppdd-overview.json`
+
+Affected panels and the required expr changes (PromQL `expr` strings inside `targets`):
+
+| Panel | Old expr | New expr |
+|---|---|---|
+| `Total Dedup / Compression Factor` (stat) | `ppdd_compression_total_factor{system=~"$system"}` | `ppdd_compression_factor{system=~"$system"}` |
+| `Compression Factors` (timeseries) | 4 targets: `ppdd_compression_global_factor`, `ppdd_compression_local_factor`, `ppdd_compression_total_factor`, `ppdd_compression_factor` | single target: `ppdd_compression_factor{system=~"$system"}` (remove the three dropped series) |
+| `Replication Sync Lag` (bargauge) | `ppdd_replication_sync_lag_seconds{system=~"$system"}` | retitle to `File Replication Network Bytes`; expr `ppdd_file_replication_network_bytes{system=~"$system"}` |
+| `Replication Backlog (pre-comp remaining)` (stat) | `ppdd_replication_precomp_bytes_remaining{system=~"$system"}` | retitle to `Contexts Needing Resync`; expr `sum(ppdd_mtree_replication_need_resync{system=~"$system"}) or vector(0)` |
+| `Contexts Not Normal` (stat) | `count(ppdd_replication_state{system=~"$system", state!="normal"} == 1) or vector(0)` | `count(ppdd_mtree_replication_state{system=~"$system", state!="NORMAL"} == 1) or vector(0)` (metric renamed; state enum is uppercase `NORMAL`) |
+
+- [ ] **Step 1: Edit the dashboard JSON**
+
+Open `grafana/dashboards/ppdd-overview.json` and apply the expr (and where noted, panel `title`) changes from the table above. For the `Compression Factors` timeseries, reduce its `targets` array to a single entry querying `ppdd_compression_factor{system=~"$system"}` (keep that target's `refId`, drop the others). Where a panel is retitled, update its `title` field and, if the bytes unit differs, set the field `unit` appropriately (`decbytes` for the network-bytes bargauge; the resync-count stat has no unit / `short`). Do not change panel `id`s, grid positions, or datasource references.
+
+- [ ] **Step 2: Verify the JSON is valid and references only current metrics**
+
+Run:
+```bash
+python3 -c "import json; json.load(open('grafana/dashboards/ppdd-overview.json')); print('valid json')"
+grep -oE 'ppdd_[a-z_]+' grafana/dashboards/ppdd-overview.json | sort -u
+```
+Expected: `valid json`, and the metric list contains NONE of: `ppdd_compression_global_factor`, `ppdd_compression_local_factor`, `ppdd_compression_total_factor`, `ppdd_replication_state`, `ppdd_replication_sync_lag_seconds`, `ppdd_replication_precomp_bytes_remaining`. It SHOULD now contain `ppdd_file_replication_network_bytes`, `ppdd_mtree_replication_need_resync`, `ppdd_mtree_replication_state`.
+
+- [ ] **Step 3: Commit**
+
+```bash
+git add grafana/dashboards/ppdd-overview.json
+git commit -m "fix(grafana): repoint dashboard to corrected 8.7.0 metric set
+
+Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
+```
+
+---
+
 ## Task 10: Full CI gate
 
 **Files:** none (verification only)
@@ -1157,6 +1201,6 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 
 ## Self-review notes (already applied)
 
-- **Spec coverage:** every finding in the design (capacity/file-systems, mtree quota+compression, disks, performance, alerts, replication split, mockdd, docs, changelog, comment cleanup) maps to Tasks 1-9; Task 10 is the gate.
+- **Spec coverage:** every finding in the design (capacity/file-systems, mtree quota+compression, disks, performance, alerts, replication split, mockdd, docs, changelog, comment cleanup) maps to Tasks 1-9; Task 9b repoints the Grafana dashboard to the corrected metric set; Task 10 is the gate.
 - **Type consistency:** `MTreeReplication`/`FileReplication` names match between collector, test, and `Registry()`; `pathPerformance`, `pathMTreeReplication`, `pathFileReplication` names are consistent across endpoints.go and all referencing files; fixture filenames (`file-systems.json`, `performance.json`, `mtree-replications.json`, `file-replications.json`) match every loader.
 - **Compile order:** unused package-level constants are legal in Go, so adding `pathMTreeReplication` (Task 6) before its Registry use (Task 7) compiles; the old `Replication`/`pathReplication` survive until Task 7 deletes them together with their references.
