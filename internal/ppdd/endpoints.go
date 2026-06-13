@@ -14,6 +14,8 @@ const (
 	pathDisks       = "/api/v1/dd-systems/0/storage/disks"     // validated 8.7.0: schema DiskInfos
 	pathPerformance = "/api/v3/dd-systems/0/stats/performance" // validated 8.7.0: schema SystemPerformance
 	pathFileSystem  = "/rest/v1.0/dd-systems/0/file-systems"   // validated 8.7.0: filesysInfo (clean state)
+
+	pathMTreeReplication = "/api/v1/dd-systems/0/mtree-replications" // validated 8.7.0: schema MtreeReplicationInfos
 )
 
 // mtreeStatsPath returns the per-MTree capacity stats path (v2.0, documented).
