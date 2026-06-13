@@ -25,13 +25,14 @@ var fixtures embed.FS
 
 // routes maps an exporter request path to its embedded fixture file.
 var routes = map[string]string{
-	"/rest/v1.0/system":                          "fixtures/system.json",
-	"/rest/v1.0/dd-systems/0/file-system":        "fixtures/file-system.json",
-	"/rest/v3.0/dd-systems/0/mtrees":             "fixtures/mtrees.json",
-	"/rest/v1.0/dd-systems/0/replications":       "fixtures/replications.json",
-	"/rest/v1.0/dd-systems/0/hardware/disks":     "fixtures/disks.json",
-	"/rest/v1.0/dd-systems/0/alerts":             "fixtures/alerts.json",
-	"/rest/v1.0/dd-systems/0/stats/system-stats": "fixtures/system-stats.json",
+	"/rest/v1.0/system":                               "fixtures/system.json",
+	"/rest/v1.0/dd-systems/0/file-systems":            "fixtures/file-systems.json",
+	"/rest/v3.0/dd-systems/0/mtrees":                  "fixtures/mtrees.json",
+	"/api/v1/dd-systems/0/mtree-replications":         "fixtures/mtree-replications.json",
+	"/rest/v1.0/dd-systems/0/stats/file-replications": "fixtures/file-replications.json",
+	"/api/v1/dd-systems/0/storage/disks":              "fixtures/disks.json",
+	"/rest/v1.0/dd-systems/0/alerts":                  "fixtures/alerts.json",
+	"/api/v3/dd-systems/0/stats/performance":          "fixtures/performance.json",
 }
 
 const mockToken = "mockdd-session-token"

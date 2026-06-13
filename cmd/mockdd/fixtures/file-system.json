@@ -1,6 +1,0 @@
-{
-  "global_compression_factor": 5.5,
-  "local_compression_factor": 1.8,
-  "total_compression_factor": 9.9,
-  "cleaning": { "status": "running" }
-}
