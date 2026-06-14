@@ -1,0 +1,227 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "graphTooltip": 1,
+  "title": "PowerProtect DD — Replication",
+  "uid": "ppdd-replication",
+  "tags": ["ppdd", "dell", "data-domain"],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "time": { "from": "now-6h", "to": "now" },
+  "refresh": "1m",
+  "links": [
+    {
+      "type": "dashboards",
+      "tags": ["ppdd"],
+      "title": "PPDD dashboards",
+      "asDropdown": true,
+      "includeVars": true,
+      "keepTime": true,
+      "icon": "external link"
+    }
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "system",
+        "label": "DD System",
+        "type": "query",
+        "datasource": { "type": "prometheus", "uid": "prometheus" },
+        "query": { "query": "label_values(ppdd_filesystem_total_bytes, system)", "refId": "vars" },
+        "refresh": 2,
+        "includeAll": true,
+        "multi": true,
+        "current": { "text": "All", "value": "$__all" }
+      }
+    ]
+  },
+  "panels": [
+    {
+      "type": "row",
+      "title": "MTree replication",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 }
+    },
+    {
+      "type": "stat",
+      "title": "Contexts not NORMAL",
+      "description": "MTree replication contexts whose current state is not NORMAL.",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 1 },
+      "options": { "colorMode": "background", "graphMode": "none" },
+      "fieldConfig": { "defaults": { "unit": "none", "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "red", "value": 1 } ] } } },
+      "targets": [
+        { "refId": "A", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "count(ppdd_mtree_replication_state{system=~\"$system\", state!=\"NORMAL\"} == 1) or vector(0)", "instant": true }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Need resync",
+      "description": "Replication contexts requiring a resync.",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 1 },
+      "options": { "colorMode": "background", "graphMode": "none" },
+      "fieldConfig": { "defaults": { "unit": "none", "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "orange", "value": 1 } ] } } },
+      "targets": [
+        { "refId": "A", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "sum(ppdd_mtree_replication_need_resync{system=~\"$system\"}) or vector(0)", "instant": true }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Disconnected",
+      "description": "Enabled contexts that are not currently connected.",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 1 },
+      "options": { "colorMode": "background", "graphMode": "none" },
+      "fieldConfig": { "defaults": { "unit": "none", "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "red", "value": 1 } ] } } },
+      "targets": [
+        { "refId": "A", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "count((ppdd_mtree_replication_enabled{system=~\"$system\"} == 1) and (ppdd_mtree_replication_connected{system=~\"$system\"} == 0)) or vector(0)", "instant": true }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Enabled contexts",
+      "description": "MTree replication contexts that are enabled.",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 1 },
+      "options": { "colorMode": "value", "graphMode": "none" },
+      "fieldConfig": { "defaults": { "unit": "none", "color": { "mode": "fixed", "fixedColor": "blue" } } },
+      "targets": [
+        { "refId": "A", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "sum(ppdd_mtree_replication_enabled{system=~\"$system\"}) or vector(0)", "instant": true }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "MTree replication contexts",
+      "description": "Per source→destination context: current state, connected, enabled, need-resync.",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 9, "w": 24, "x": 0, "y": 5 },
+      "targets": [
+        { "refId": "State", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "label_replace(ppdd_mtree_replication_state{system=~\"$system\"} == 1, \"current_state\", \"$1\", \"state\", \"(.*)\")", "format": "table", "instant": true },
+        { "refId": "Connected", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "ppdd_mtree_replication_connected{system=~\"$system\"}", "format": "table", "instant": true },
+        { "refId": "Enabled", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "ppdd_mtree_replication_enabled{system=~\"$system\"}", "format": "table", "instant": true },
+        { "refId": "Resync", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "ppdd_mtree_replication_need_resync{system=~\"$system\"}", "format": "table", "instant": true }
+      ],
+      "transformations": [
+        { "id": "merge", "options": {} },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": { "Time": true, "__name__": true, "job": true, "instance": true, "state": true, "Value #State": true },
+            "indexByName": {
+              "system": 0,
+              "source": 1,
+              "destination": 2,
+              "current_state": 3,
+              "Value #Connected": 4,
+              "Value #Enabled": 5,
+              "Value #Resync": 6
+            },
+            "renameByName": {
+              "system": "System",
+              "source": "Source",
+              "destination": "Destination",
+              "current_state": "State",
+              "Value #Connected": "Connected",
+              "Value #Enabled": "Enabled",
+              "Value #Resync": "Need resync"
+            }
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "State" }, "properties": [ { "id": "mappings", "value": [ { "type": "value", "options": { "NORMAL": { "color": "green" }, "RESYNCING": { "color": "orange" }, "RECOVERING": { "color": "orange" }, "INITIALIZING": { "color": "blue" }, "CONNECTING": { "color": "blue" }, "UNINITIALIZED": { "color": "red" } } } ] }, { "id": "custom.cellOptions", "value": { "type": "color-text" } } ] },
+          { "matcher": { "id": "byName", "options": "Connected" }, "properties": [ { "id": "mappings", "value": [ { "type": "value", "options": { "0": { "text": "No", "color": "red" }, "1": { "text": "Yes", "color": "green" } } } ] }, { "id": "custom.cellOptions", "value": { "type": "color-text" } } ] },
+          { "matcher": { "id": "byName", "options": "Enabled" }, "properties": [ { "id": "mappings", "value": [ { "type": "value", "options": { "0": { "text": "No", "color": "text" }, "1": { "text": "Yes", "color": "green" } } } ] }, { "id": "custom.cellOptions", "value": { "type": "color-text" } } ] },
+          { "matcher": { "id": "byName", "options": "Need resync" }, "properties": [ { "id": "mappings", "value": [ { "type": "value", "options": { "0": { "text": "No", "color": "green" }, "1": { "text": "Yes", "color": "red" } } } ] }, { "id": "custom.cellOptions", "value": { "type": "color-text" } } ] }
+        ]
+      }
+    },
+    {
+      "type": "state-timeline",
+      "title": "MTree replication state over time",
+      "description": "Active state per source→destination context (1 = current state).",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 7, "w": 24, "x": 0, "y": 14 },
+      "options": { "mergeValues": true, "showValue": "auto", "rowHeight": 0.9, "legend": { "displayMode": "list", "placement": "bottom" } },
+      "fieldConfig": { "defaults": { "unit": "none" } },
+      "targets": [
+        { "refId": "A", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "ppdd_mtree_replication_state{system=~\"$system\"} == 1", "legendFormat": "{{source}} → {{destination}} : {{state}}" }
+      ]
+    },
+    {
+      "type": "row",
+      "title": "File replication",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 21 }
+    },
+    {
+      "type": "bargauge",
+      "title": "Network bytes by context",
+      "description": "ppdd_file_replication_network_bytes per context.",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 22 },
+      "options": { "orientation": "horizontal", "displayMode": "gradient", "minVizWidth": 0 },
+      "fieldConfig": { "defaults": { "unit": "decbytes", "color": { "mode": "continuous-GrYlRd" } } },
+      "targets": [
+        { "refId": "A", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "ppdd_file_replication_network_bytes{system=~\"$system\"}", "legendFormat": "{{context}}", "instant": true }
+      ]
+    },
+    {
+      "type": "table",
+      "title": "File replication contexts",
+      "description": "Per context: network bytes, logical replicated, active files.",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 22 },
+      "targets": [
+        { "refId": "Network", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "ppdd_file_replication_network_bytes{system=~\"$system\"}", "format": "table", "instant": true },
+        { "refId": "Logical", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "ppdd_file_replication_logical_replicated_bytes{system=~\"$system\"}", "format": "table", "instant": true },
+        { "refId": "Files", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "ppdd_file_replication_active_files{system=~\"$system\"}", "format": "table", "instant": true }
+      ],
+      "transformations": [
+        { "id": "merge", "options": {} },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": { "Time": true, "__name__": true, "job": true, "instance": true },
+            "indexByName": { "system": 0, "context": 1, "Value #Network": 2, "Value #Logical": 3, "Value #Files": 4 },
+            "renameByName": {
+              "system": "System",
+              "context": "Context",
+              "Value #Network": "Network bytes",
+              "Value #Logical": "Logical replicated",
+              "Value #Files": "Active files"
+            }
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "Network bytes" }, "properties": [ { "id": "unit", "value": "decbytes" } ] },
+          { "matcher": { "id": "byName", "options": "Logical replicated" }, "properties": [ { "id": "unit", "value": "decbytes" } ] },
+          { "matcher": { "id": "byName", "options": "Active files" }, "properties": [ { "id": "unit", "value": "short" } ] }
+        ]
+      }
+    },
+    {
+      "type": "bargauge",
+      "title": "File replication status",
+      "description": "Count of file replication contexts by current status.",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 6, "w": 24, "x": 0, "y": 30 },
+      "options": { "orientation": "horizontal", "displayMode": "basic" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "thresholds": { "mode": "absolute", "steps": [ { "color": "blue", "value": null } ] },
+          "overrides": []
+        }
+      },
+      "targets": [
+        { "refId": "A", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "sum by (status) (ppdd_file_replication_status{system=~\"$system\"} == 1)", "legendFormat": "{{status}}", "instant": true }
+      ]
+    }
+  ]
+}

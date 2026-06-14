@@ -1,0 +1,168 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "graphTooltip": 1,
+  "title": "PowerProtect DD — Capacity & Dedup",
+  "uid": "ppdd-capacity",
+  "tags": ["ppdd", "dell", "data-domain"],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "time": { "from": "now-6h", "to": "now" },
+  "refresh": "1m",
+  "links": [
+    {
+      "type": "dashboards",
+      "tags": ["ppdd"],
+      "title": "PPDD dashboards",
+      "asDropdown": true,
+      "includeVars": true,
+      "keepTime": true,
+      "icon": "external link"
+    }
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "system",
+        "label": "DD System",
+        "type": "query",
+        "datasource": { "type": "prometheus", "uid": "prometheus" },
+        "query": { "query": "label_values(ppdd_filesystem_total_bytes, system)", "refId": "vars" },
+        "refresh": 2,
+        "includeAll": true,
+        "multi": true,
+        "current": { "text": "All", "value": "$__all" }
+      }
+    ]
+  },
+  "panels": [
+    {
+      "type": "row",
+      "title": "Headroom",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 }
+    },
+    {
+      "type": "bargauge",
+      "title": "Filesystem used %",
+      "description": "100 * used / total per system.",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 1 },
+      "options": { "orientation": "horizontal", "displayMode": "gradient", "minVizWidth": 0 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent", "min": 0, "max": 100, "decimals": 1,
+          "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "yellow", "value": 70 }, { "color": "red", "value": 85 } ] }
+        }
+      },
+      "targets": [
+        { "refId": "A", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "100 * ppdd_filesystem_used_bytes{system=~\"$system\"} / ppdd_filesystem_total_bytes{system=~\"$system\"}", "legendFormat": "{{system}}", "instant": true }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Lowest dedup factor",
+      "description": "Lowest total compression (dedup) factor across selected systems.",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 4, "w": 4, "x": 8, "y": 1 },
+      "options": { "colorMode": "value", "graphMode": "area" },
+      "fieldConfig": { "defaults": { "unit": "none", "decimals": 1, "color": { "mode": "fixed", "fixedColor": "purple" } } },
+      "targets": [
+        { "refId": "A", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "min(ppdd_compression_factor{system=~\"$system\"})", "instant": true }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Total raw capacity",
+      "description": "Sum of filesystem total bytes.",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 4, "w": 4, "x": 12, "y": 1 },
+      "fieldConfig": { "defaults": { "unit": "bytes", "color": { "mode": "fixed", "fixedColor": "blue" } } },
+      "targets": [
+        { "refId": "A", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "sum(ppdd_filesystem_total_bytes{system=~\"$system\"})", "instant": true }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Total available",
+      "description": "Sum of filesystem available bytes.",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 4, "w": 4, "x": 16, "y": 1 },
+      "fieldConfig": { "defaults": { "unit": "bytes", "color": { "mode": "fixed", "fixedColor": "green" } } },
+      "targets": [
+        { "refId": "A", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "sum(ppdd_filesystem_available_bytes{system=~\"$system\"})", "instant": true }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "GC running",
+      "description": "Filesystems with cleaning / garbage collection currently running.",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 4, "w": 4, "x": 20, "y": 1 },
+      "options": { "colorMode": "background" },
+      "fieldConfig": { "defaults": { "unit": "none", "thresholds": { "mode": "absolute", "steps": [ { "color": "blue", "value": null } ] } } },
+      "targets": [
+        { "refId": "A", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "sum(ppdd_filesystem_cleaning_running{system=~\"$system\"}) or vector(0)", "instant": true }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Mean used %",
+      "description": "Average filesystem utilization across selected systems.",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 4, "w": 12, "x": 8, "y": 5 },
+      "options": { "colorMode": "value", "graphMode": "area" },
+      "fieldConfig": { "defaults": { "unit": "percent", "decimals": 1, "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "yellow", "value": 70 }, { "color": "red", "value": 85 } ] } } },
+      "targets": [
+        { "refId": "A", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "avg(100 * ppdd_filesystem_used_bytes{system=~\"$system\"} / ppdd_filesystem_total_bytes{system=~\"$system\"})", "instant": true }
+      ]
+    },
+    {
+      "type": "row",
+      "title": "Trends",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 9 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Used vs available",
+      "description": "Used and available bytes over time per system.",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 10 },
+      "fieldConfig": { "defaults": { "unit": "bytes", "custom": { "drawStyle": "line", "lineWidth": 2, "fillOpacity": 10 } } },
+      "options": { "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["lastNotNull", "max"] } },
+      "targets": [
+        { "refId": "A", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "ppdd_filesystem_used_bytes{system=~\"$system\"}", "legendFormat": "used {{system}}" },
+        { "refId": "B", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "ppdd_filesystem_available_bytes{system=~\"$system\"}", "legendFormat": "available {{system}}" }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Dedup / compression factor",
+      "description": "ppdd_compression_factor over time. Higher is better.",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 10 },
+      "fieldConfig": { "defaults": { "unit": "none", "decimals": 1, "custom": { "drawStyle": "line", "lineWidth": 2, "fillOpacity": 5 } } },
+      "options": { "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["lastNotNull", "min"] } },
+      "targets": [
+        { "refId": "A", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "ppdd_compression_factor{system=~\"$system\"}", "legendFormat": "{{system}}" }
+      ]
+    },
+    {
+      "type": "state-timeline",
+      "title": "GC / cleaning activity",
+      "description": "When garbage collection was running per system (1 = running).",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 6, "w": 24, "x": 0, "y": 18 },
+      "options": { "mergeValues": true, "showValue": "never", "rowHeight": 0.9, "legend": { "displayMode": "list", "placement": "bottom" } },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "mappings": [ { "type": "value", "options": { "0": { "text": "idle", "color": "dark-green" }, "1": { "text": "running", "color": "blue" } } } ]
+        }
+      },
+      "targets": [
+        { "refId": "A", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "ppdd_filesystem_cleaning_running{system=~\"$system\"}", "legendFormat": "{{system}}" }
+      ]
+    }
+  ]
+}

@@ -6,6 +6,25 @@ All notable changes to this project are documented here. The format is based on
 
 ## [Unreleased]
 
+### Added
+- **Grafana dashboard suite.** Replaced the single overview dashboard with five linked,
+  auto-provisioned dashboards (all tagged `ppdd`, with a cross-navigation dropdown):
+  - `ppdd-overview` — NOC at-a-glance: a fleet KPI row (systems, collectors down, failed
+    disks, critical alerts, replication not-NORMAL, need-resync, GC running, worst used %)
+    plus a per-system summary table with inline gauges and status coloring.
+  - `ppdd-capacity` — utilization bargauge, used-vs-available and dedup trends, and a
+    GC/cleaning state timeline (`ppdd_filesystem_cleaning_running`).
+  - `ppdd-mtrees` — per-MTree logical usage, **quota utilization %** (guarded on a non-zero
+    hard limit), and a detail table with soft/hard quotas, degraded, and retention-lock.
+  - `ppdd-replication` — MTree context table/timeline (state, connected, enabled,
+    need-resync) and file replication (network/logical bytes, active files, status).
+  - `ppdd-health` — failed-disk detail, alerts by severity/class, CPU, throughput, and the
+    collector-up matrix.
+  - Surfaces the previously-unused metrics (GC, MTree quotas, replication connected/enabled,
+    file-replication logical bytes / active files / status, per-disk failures). Shared
+    crosshair tooltip, consistent threshold palette, and panel descriptions throughout.
+    Every query was validated end-to-end against the `mockdd` Compose demo.
+
 ## [0.7.0] - 2026-06-14
 
 ### Changed

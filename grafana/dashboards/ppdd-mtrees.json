@@ -1,0 +1,139 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "graphTooltip": 1,
+  "title": "PowerProtect DD — MTrees",
+  "uid": "ppdd-mtrees",
+  "tags": ["ppdd", "dell", "data-domain"],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "time": { "from": "now-6h", "to": "now" },
+  "refresh": "1m",
+  "links": [
+    {
+      "type": "dashboards",
+      "tags": ["ppdd"],
+      "title": "PPDD dashboards",
+      "asDropdown": true,
+      "includeVars": true,
+      "keepTime": true,
+      "icon": "external link"
+    }
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "system",
+        "label": "DD System",
+        "type": "query",
+        "datasource": { "type": "prometheus", "uid": "prometheus" },
+        "query": { "query": "label_values(ppdd_mtree_logical_used_bytes, system)", "refId": "vars" },
+        "refresh": 2,
+        "includeAll": true,
+        "multi": true,
+        "current": { "text": "All", "value": "$__all" }
+      }
+    ]
+  },
+  "panels": [
+    {
+      "type": "row",
+      "title": "Usage",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 }
+    },
+    {
+      "type": "bargauge",
+      "title": "MTree logical used",
+      "description": "Pre-compression logical bytes per MTree.",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 9, "w": 12, "x": 0, "y": 1 },
+      "options": { "orientation": "horizontal", "displayMode": "gradient", "minVizWidth": 0 },
+      "fieldConfig": { "defaults": { "unit": "bytes", "color": { "mode": "continuous-BlPu" } } },
+      "targets": [
+        { "refId": "A", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "ppdd_mtree_logical_used_bytes{system=~\"$system\"}", "legendFormat": "{{mtree}}", "instant": true }
+      ]
+    },
+    {
+      "type": "bargauge",
+      "title": "Quota utilization %",
+      "description": "logical_used / hard_limit, shown only for MTrees with a hard quota set (> 0).",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 9, "w": 12, "x": 12, "y": 1 },
+      "options": { "orientation": "horizontal", "displayMode": "gradient", "minVizWidth": 0 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent", "min": 0, "max": 100, "decimals": 1,
+          "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "yellow", "value": 80 }, { "color": "red", "value": 95 } ] }
+        }
+      },
+      "targets": [
+        { "refId": "A", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "100 * ppdd_mtree_logical_used_bytes{system=~\"$system\"} / (ppdd_mtree_quota_hard_limit_bytes{system=~\"$system\"} > 0)", "legendFormat": "{{mtree}}", "instant": true }
+      ]
+    },
+    {
+      "type": "row",
+      "title": "Detail",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 10 }
+    },
+    {
+      "type": "table",
+      "title": "MTree detail",
+      "description": "Per-MTree logical/physical usage, dedup, quotas, and protection flags.",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 12, "w": 24, "x": 0, "y": 11 },
+      "targets": [
+        { "refId": "Logical", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "ppdd_mtree_logical_used_bytes{system=~\"$system\"}", "format": "table", "instant": true },
+        { "refId": "Physical", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "ppdd_mtree_physical_used_bytes{system=~\"$system\"}", "format": "table", "instant": true },
+        { "refId": "Compression", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "ppdd_mtree_compression_factor{system=~\"$system\"}", "format": "table", "instant": true },
+        { "refId": "QuotaSoft", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "ppdd_mtree_quota_soft_limit_bytes{system=~\"$system\"}", "format": "table", "instant": true },
+        { "refId": "QuotaHard", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "ppdd_mtree_quota_hard_limit_bytes{system=~\"$system\"}", "format": "table", "instant": true },
+        { "refId": "Degraded", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "ppdd_mtree_degraded{system=~\"$system\"}", "format": "table", "instant": true },
+        { "refId": "RetentionLock", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "ppdd_mtree_retention_lock_enabled{system=~\"$system\"}", "format": "table", "instant": true }
+      ],
+      "transformations": [
+        { "id": "merge", "options": {} },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": { "Time": true, "__name__": true, "job": true, "instance": true },
+            "indexByName": {
+              "system": 0,
+              "mtree": 1,
+              "Value #Logical": 2,
+              "Value #Physical": 3,
+              "Value #Compression": 4,
+              "Value #QuotaSoft": 5,
+              "Value #QuotaHard": 6,
+              "Value #Degraded": 7,
+              "Value #RetentionLock": 8
+            },
+            "renameByName": {
+              "system": "System",
+              "mtree": "MTree",
+              "Value #Logical": "Logical used",
+              "Value #Physical": "Physical used",
+              "Value #Compression": "Dedup x",
+              "Value #QuotaSoft": "Quota soft",
+              "Value #QuotaHard": "Quota hard",
+              "Value #Degraded": "Degraded",
+              "Value #RetentionLock": "Retention lock"
+            }
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "Logical used" }, "properties": [ { "id": "unit", "value": "bytes" } ] },
+          { "matcher": { "id": "byName", "options": "Physical used" }, "properties": [ { "id": "unit", "value": "bytes" } ] },
+          { "matcher": { "id": "byName", "options": "Quota soft" }, "properties": [ { "id": "unit", "value": "bytes" } ] },
+          { "matcher": { "id": "byName", "options": "Quota hard" }, "properties": [ { "id": "unit", "value": "bytes" } ] },
+          { "matcher": { "id": "byName", "options": "Dedup x" }, "properties": [ { "id": "unit", "value": "none" }, { "id": "decimals", "value": 1 } ] },
+          { "matcher": { "id": "byName", "options": "Degraded" }, "properties": [ { "id": "mappings", "value": [ { "type": "value", "options": { "0": { "text": "No", "color": "green" }, "1": { "text": "Yes", "color": "red" } } } ] }, { "id": "custom.cellOptions", "value": { "type": "color-text" } } ] },
+          { "matcher": { "id": "byName", "options": "Retention lock" }, "properties": [ { "id": "mappings", "value": [ { "type": "value", "options": { "0": { "text": "No", "color": "orange" }, "1": { "text": "Yes", "color": "green" } } } ] }, { "id": "custom.cellOptions", "value": { "type": "color-text" } } ] }
+        ]
+      }
+    }
+  ]
+}

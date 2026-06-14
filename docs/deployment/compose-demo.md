@@ -39,7 +39,14 @@ docker compose -f docker-compose.ghcr.yml up       # GHCR stack
 
 Then open:
 
-- **Grafana** — <http://localhost:3000> (admin / admin) → dashboard **“PowerProtect DD — Overview”** (folder *PowerProtect DD*). The Prometheus datasource and dashboard are auto-provisioned.
+- **Grafana** — <http://localhost:3000> (admin / admin) → folder *PowerProtect DD*, which auto-provisions five linked dashboards (use the **PPDD dashboards** dropdown in the top-left of any one to jump between them):
+  - **PowerProtect DD — Overview** — NOC at-a-glance: fleet KPI row + per-system summary table.
+  - **PowerProtect DD — Capacity & Dedup** — utilization, dedup/compression trends, GC activity.
+  - **PowerProtect DD — MTrees** — per-MTree usage, quota utilization, protection flags.
+  - **PowerProtect DD — Replication** — MTree contexts (state/connected/resync) + file replication.
+  - **PowerProtect DD — Health & Ops** — failed disks, alerts, CPU, throughput, collector health.
+
+  The Prometheus datasource and all dashboards are auto-provisioned.
 - **Prometheus** — <http://localhost:9090>
 - **Exporter** — <http://localhost:9099/metrics> and <http://localhost:9099/health>
 
@@ -52,8 +59,9 @@ Tear down with `make demo-down` (or `docker compose down`).
 - The exporter uses `config.demo.yaml` (a 30s interval for a snappy demo) pointed at the
   `mockdd` service.
 - Prometheus scrapes `ppdd_exporter:9099` (`prometheus.yml`).
-- Grafana provisioning lives in `grafana/provisioning/`; the dashboard JSON is the repo's
-  canonical `grafana/dashboards/ppdd-overview.json`.
+- Grafana provisioning lives in `grafana/provisioning/`; the canonical dashboard JSON lives in
+  `grafana/dashboards/` (`ppdd-overview`, `ppdd-capacity`, `ppdd-mtrees`, `ppdd-replication`,
+  `ppdd-health`), all tagged `ppdd` and cross-linked.
 
 ## Pointing at a real appliance
 
