@@ -19,6 +19,9 @@ All notable changes to this project are documented here. The format is based on
     casing (e.g. `CRITICAL`).
 
 ### Added
+- **Windows release builds.** GoReleaser now cross-compiles `windows/amd64` and
+  `windows/arm64` alongside linux/darwin; Windows artifacts ship as `.zip` (others
+  remain `.tar.gz`).
 - **Native `.env` loading at startup (no-override semantics).** `ppdd_exporter` now
   calls `config.LoadDotEnv` before `config.Load`, trying `./.env` then the config
   file's directory. Already-set environment variables always win (godotenv
