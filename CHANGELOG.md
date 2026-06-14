@@ -6,9 +6,12 @@ All notable changes to this project are documented here. The format is based on
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-06-14
+
 ### Changed
 - Validated and corrected all DD API mappings against the PowerProtect DD 8.7.0 OpenAPI
-  spec (`docs/swagger/13345-8.7.0.json`):
+  spec (`docs/swagger/13345-8.7.0.json`), now checked in as the source of truth
+  (see [ADR-0009](docs/adr/0009-validate-against-8.7.0-openapi.md)):
   - Corrected endpoints: disks → `/api/v1/.../storage/disks`, performance →
     `/api/v3/.../stats/performance`, file-systems path (plural).
   - Fixed fields: alerts array key `alert_list`, mtree quota via `quota_config`,
@@ -16,12 +19,19 @@ All notable changes to this project are documented here. The format is based on
   - **Breaking:** removed `ppdd_compression_{global,local,total}_factor` (no source on
     8.7.0); replaced the `ppdd_replication_*` metrics with `ppdd_mtree_replication_*`
     (posture) and `ppdd_file_replication_*` (stats). Alert label values now use DD enum
-    casing (e.g. `CRITICAL`).
+    casing (e.g. `CRITICAL`). The `mockdd` demo and the Grafana overview dashboard were
+    repointed to the corrected metric set.
+- Upgraded dependencies (`golang.org/x/*`, `prometheus/common`+`procfs`, `pflag`,
+  `protobuf`); `govulncheck` reports no advisories.
 
 ### Added
 - **Windows release builds.** GoReleaser now cross-compiles `windows/amd64` and
   `windows/arm64` alongside linux/darwin; Windows artifacts ship as `.zip` (others
   remain `.tar.gz`).
+
+## [0.6.0] - 2026-06-12
+
+### Added
 - **Native `.env` loading at startup (no-override semantics).** `ppdd_exporter` now
   calls `config.LoadDotEnv` before `config.Load`, trying `./.env` then the config
   file's directory. Already-set environment variables always win (godotenv
