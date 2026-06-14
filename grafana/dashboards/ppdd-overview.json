@@ -87,7 +87,7 @@
       "gridPos": { "h": 4, "w": 6, "x": 18, "y": 1 },
       "fieldConfig": { "defaults": { "unit": "none", "decimals": 1, "color": { "mode": "fixed", "fixedColor": "purple" } } },
       "targets": [
-        { "refId": "A", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "ppdd_compression_total_factor{system=~\"$system\"}", "legendFormat": "{{system}}" }
+        { "refId": "A", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "ppdd_compression_factor{system=~\"$system\"}", "legendFormat": "{{system}}" }
       ]
     },
     {
@@ -107,10 +107,7 @@
       "gridPos": { "h": 4, "w": 12, "x": 12, "y": 5 },
       "fieldConfig": { "defaults": { "unit": "none", "decimals": 1, "custom": { "drawStyle": "line", "lineWidth": 2, "fillOpacity": 5 } } },
       "targets": [
-        { "refId": "A", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "ppdd_compression_global_factor{system=~\"$system\"}", "legendFormat": "global {{system}}" },
-        { "refId": "B", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "ppdd_compression_local_factor{system=~\"$system\"}", "legendFormat": "local {{system}}" },
-        { "refId": "C", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "ppdd_compression_total_factor{system=~\"$system\"}", "legendFormat": "total {{system}}" },
-        { "refId": "Documented", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "ppdd_compression_factor{system=~\"$system\"}", "legendFormat": "documented {{system}}" }
+        { "refId": "A", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "ppdd_compression_factor{system=~\"$system\"}", "legendFormat": "compression factor {{system}}" }
       ]
     },
     {
@@ -177,28 +174,28 @@
     },
     {
       "type": "bargauge",
-      "title": "Replication Sync Lag",
+      "title": "File Replication Network Bytes",
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "gridPos": { "h": 7, "w": 12, "x": 0, "y": 19 },
       "options": { "orientation": "horizontal", "displayMode": "gradient" },
       "fieldConfig": {
         "defaults": {
-          "unit": "s",
-          "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "yellow", "value": 600 }, { "color": "red", "value": 3600 } ] }
+          "unit": "decbytes",
+          "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null } ] }
         }
       },
       "targets": [
-        { "refId": "A", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "ppdd_replication_sync_lag_seconds{system=~\"$system\"}", "legendFormat": "{{source}}", "instant": true }
+        { "refId": "A", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "ppdd_file_replication_network_bytes{system=~\"$system\"}", "legendFormat": "{{context}}", "instant": true }
       ]
     },
     {
       "type": "stat",
-      "title": "Replication Backlog (pre-comp remaining)",
+      "title": "Contexts Needing Resync",
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "gridPos": { "h": 7, "w": 6, "x": 12, "y": 19 },
-      "fieldConfig": { "defaults": { "unit": "bytes" } },
+      "fieldConfig": { "defaults": { "unit": "short" } },
       "targets": [
-        { "refId": "A", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "ppdd_replication_precomp_bytes_remaining{system=~\"$system\"}", "legendFormat": "{{source}}" }
+        { "refId": "A", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "sum(ppdd_mtree_replication_need_resync{system=~\"$system\"}) or vector(0)", "legendFormat": "{{source}}" }
       ]
     },
     {
@@ -213,7 +210,7 @@
         }
       },
       "targets": [
-        { "refId": "A", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "count(ppdd_replication_state{system=~\"$system\", state!=\"normal\"} == 1) or vector(0)", "legendFormat": "not normal" }
+        { "refId": "A", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "count(ppdd_mtree_replication_state{system=~\"$system\", state!=\"NORMAL\"} == 1) or vector(0)", "legendFormat": "not normal" }
       ]
     },
     {
