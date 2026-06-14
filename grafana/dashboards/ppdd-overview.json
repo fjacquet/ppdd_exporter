@@ -1,7 +1,7 @@
 {
   "annotations": { "list": [] },
   "editable": true,
-  "graphTooltip": 0,
+  "graphTooltip": 1,
   "title": "PowerProtect DD — Overview",
   "uid": "ppdd-overview",
   "tags": ["ppdd", "dell", "data-domain"],
@@ -10,6 +10,17 @@
   "version": 1,
   "time": { "from": "now-6h", "to": "now" },
   "refresh": "1m",
+  "links": [
+    {
+      "type": "dashboards",
+      "tags": ["ppdd"],
+      "title": "PPDD dashboards",
+      "asDropdown": true,
+      "includeVars": true,
+      "keepTime": true,
+      "icon": "external link"
+    }
+  ],
   "templating": {
     "list": [
       {
@@ -28,115 +39,125 @@
   "panels": [
     {
       "type": "row",
-      "title": "Capacity & Deduplication",
+      "title": "Fleet health",
       "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 }
     },
     {
-      "type": "gauge",
-      "title": "Filesystem Used %",
+      "type": "stat",
+      "title": "Systems reporting",
+      "description": "Distinct DD systems currently exporting filesystem capacity.",
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "gridPos": { "h": 8, "w": 6, "x": 0, "y": 1 },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "percent",
-          "min": 0,
-          "max": 100,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              { "color": "green", "value": null },
-              { "color": "yellow", "value": 70 },
-              { "color": "red", "value": 85 }
-            ]
-          }
-        }
-      },
+      "gridPos": { "h": 4, "w": 3, "x": 0, "y": 1 },
+      "options": { "colorMode": "value", "graphMode": "none", "textMode": "value" },
+      "fieldConfig": { "defaults": { "unit": "none", "color": { "mode": "fixed", "fixedColor": "blue" } } },
       "targets": [
-        {
-          "refId": "A",
-          "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "expr": "100 * ppdd_filesystem_used_bytes{system=~\"$system\"} / ppdd_filesystem_total_bytes{system=~\"$system\"}",
-          "legendFormat": "{{system}}"
-        }
+        { "refId": "A", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "count(group by (system) (ppdd_filesystem_total_bytes{system=~\"$system\"}))", "instant": true }
       ]
     },
     {
       "type": "stat",
-      "title": "Used",
+      "title": "Collectors down",
+      "description": "Collector modules reporting ppdd_collector_up == 0. Non-zero means a domain failed to scrape.",
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 1 },
-      "fieldConfig": { "defaults": { "unit": "bytes", "color": { "mode": "fixed", "fixedColor": "blue" } } },
+      "gridPos": { "h": 4, "w": 3, "x": 3, "y": 1 },
+      "options": { "colorMode": "background", "graphMode": "none", "textMode": "value" },
+      "fieldConfig": { "defaults": { "unit": "none", "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "red", "value": 1 } ] } } },
       "targets": [
-        { "refId": "A", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "ppdd_filesystem_used_bytes{system=~\"$system\"}", "legendFormat": "{{system}}" }
+        { "refId": "A", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "count(ppdd_collector_up{system=~\"$system\"} == 0) or vector(0)", "instant": true }
       ]
     },
     {
       "type": "stat",
-      "title": "Available",
+      "title": "Failed disks",
+      "description": "Sum of ppdd_disk_failed across the selected systems.",
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 1 },
-      "fieldConfig": { "defaults": { "unit": "bytes", "color": { "mode": "fixed", "fixedColor": "green" } } },
+      "gridPos": { "h": 4, "w": 3, "x": 6, "y": 1 },
+      "options": { "colorMode": "background", "graphMode": "none", "textMode": "value" },
+      "fieldConfig": { "defaults": { "unit": "none", "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "red", "value": 1 } ] } } },
       "targets": [
-        { "refId": "A", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "ppdd_filesystem_available_bytes{system=~\"$system\"}", "legendFormat": "{{system}}" }
+        { "refId": "A", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "sum(ppdd_disk_failed{system=~\"$system\"}) or vector(0)", "instant": true }
       ]
     },
     {
       "type": "stat",
-      "title": "Total Dedup / Compression Factor",
+      "title": "Critical alerts",
+      "description": "Active alerts with severity CRITICAL (DD enum casing).",
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 1 },
-      "fieldConfig": { "defaults": { "unit": "none", "decimals": 1, "color": { "mode": "fixed", "fixedColor": "purple" } } },
+      "gridPos": { "h": 4, "w": 3, "x": 9, "y": 1 },
+      "options": { "colorMode": "background", "graphMode": "none", "textMode": "value" },
+      "fieldConfig": { "defaults": { "unit": "none", "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "red", "value": 1 } ] } } },
       "targets": [
-        { "refId": "A", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "ppdd_compression_factor{system=~\"$system\"}", "legendFormat": "{{system}}" }
+        { "refId": "A", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "sum(ppdd_alerts_active{system=~\"$system\", severity=\"CRITICAL\"}) or vector(0)", "instant": true }
       ]
     },
     {
       "type": "stat",
-      "title": "Raw Capacity",
+      "title": "Repl not NORMAL",
+      "description": "MTree replication contexts whose current state is not NORMAL.",
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 5 },
-      "fieldConfig": { "defaults": { "unit": "bytes" } },
+      "gridPos": { "h": 4, "w": 3, "x": 12, "y": 1 },
+      "options": { "colorMode": "background", "graphMode": "none", "textMode": "value" },
+      "fieldConfig": { "defaults": { "unit": "none", "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "red", "value": 1 } ] } } },
       "targets": [
-        { "refId": "A", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "ppdd_filesystem_total_bytes{system=~\"$system\"}", "legendFormat": "{{system}}" }
+        { "refId": "A", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "count(ppdd_mtree_replication_state{system=~\"$system\", state!=\"NORMAL\"} == 1) or vector(0)", "instant": true }
       ]
     },
     {
-      "type": "timeseries",
-      "title": "Compression Factors",
+      "type": "stat",
+      "title": "Need resync",
+      "description": "Replication contexts that require a resync.",
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "gridPos": { "h": 4, "w": 12, "x": 12, "y": 5 },
-      "fieldConfig": { "defaults": { "unit": "none", "decimals": 1, "custom": { "drawStyle": "line", "lineWidth": 2, "fillOpacity": 5 } } },
+      "gridPos": { "h": 4, "w": 3, "x": 15, "y": 1 },
+      "options": { "colorMode": "background", "graphMode": "none", "textMode": "value" },
+      "fieldConfig": { "defaults": { "unit": "none", "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "orange", "value": 1 } ] } } },
       "targets": [
-        { "refId": "A", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "ppdd_compression_factor{system=~\"$system\"}", "legendFormat": "compression factor {{system}}" }
+        { "refId": "A", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "sum(ppdd_mtree_replication_need_resync{system=~\"$system\"}) or vector(0)", "instant": true }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "GC running",
+      "description": "Filesystems with garbage collection / cleaning currently running.",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 4, "w": 3, "x": 18, "y": 1 },
+      "options": { "colorMode": "background", "graphMode": "none", "textMode": "value" },
+      "fieldConfig": { "defaults": { "unit": "none", "thresholds": { "mode": "absolute", "steps": [ { "color": "blue", "value": null } ] } } },
+      "targets": [
+        { "refId": "A", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "sum(ppdd_filesystem_cleaning_running{system=~\"$system\"}) or vector(0)", "instant": true }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Worst used %",
+      "description": "Highest filesystem utilization across the selected systems.",
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "gridPos": { "h": 4, "w": 3, "x": 21, "y": 1 },
+      "options": { "colorMode": "background", "graphMode": "none", "textMode": "value" },
+      "fieldConfig": { "defaults": { "unit": "percent", "decimals": 1, "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "yellow", "value": 70 }, { "color": "red", "value": 85 } ] } } },
+      "targets": [
+        { "refId": "A", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "max(100 * ppdd_filesystem_used_bytes{system=~\"$system\"} / ppdd_filesystem_total_bytes{system=~\"$system\"})", "instant": true }
       ]
     },
     {
       "type": "row",
-      "title": "MTrees",
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 9 }
-    },
-    {
-      "type": "bargauge",
-      "title": "MTree Logical Used",
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 10 },
-      "options": { "orientation": "horizontal", "displayMode": "gradient" },
-      "fieldConfig": { "defaults": { "unit": "bytes" } },
-      "targets": [
-        { "refId": "A", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "ppdd_mtree_logical_used_bytes{system=~\"$system\"}", "legendFormat": "{{mtree}}", "instant": true }
-      ]
+      "title": "Per-system summary",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 5 }
     },
     {
       "type": "table",
-      "title": "MTree Detail",
+      "title": "Systems at a glance",
+      "description": "One row per DD system. Drill into Capacity / MTrees / Replication / Health via the dashboard links above.",
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 10 },
+      "gridPos": { "h": 12, "w": 24, "x": 0, "y": 6 },
       "targets": [
-        { "refId": "Logical", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "ppdd_mtree_logical_used_bytes{system=~\"$system\"}", "format": "table", "instant": true },
-        { "refId": "Physical", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "ppdd_mtree_physical_used_bytes{system=~\"$system\"}", "format": "table", "instant": true },
-        { "refId": "Compression", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "ppdd_mtree_compression_factor{system=~\"$system\"}", "format": "table", "instant": true },
-        { "refId": "Degraded", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "ppdd_mtree_degraded{system=~\"$system\"}", "format": "table", "instant": true },
-        { "refId": "RetentionLock", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "ppdd_mtree_retention_lock_enabled{system=~\"$system\"}", "format": "table", "instant": true }
+        { "refId": "Used", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "100 * ppdd_filesystem_used_bytes{system=~\"$system\"} / ppdd_filesystem_total_bytes{system=~\"$system\"}", "format": "table", "instant": true },
+        { "refId": "UsedBytes", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "ppdd_filesystem_used_bytes{system=~\"$system\"}", "format": "table", "instant": true },
+        { "refId": "Total", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "ppdd_filesystem_total_bytes{system=~\"$system\"}", "format": "table", "instant": true },
+        { "refId": "Dedup", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "ppdd_compression_factor{system=~\"$system\"}", "format": "table", "instant": true },
+        { "refId": "Alerts", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "sum by (system) (ppdd_alerts_active{system=~\"$system\"})", "format": "table", "instant": true },
+        { "refId": "Disks", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "sum by (system) (ppdd_disk_failed{system=~\"$system\"})", "format": "table", "instant": true },
+        { "refId": "ReplBad", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "count by (system) (ppdd_mtree_replication_state{system=~\"$system\", state!=\"NORMAL\"} == 1)", "format": "table", "instant": true },
+        { "refId": "CPU", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "ppdd_system_cpu_percent{system=~\"$system\"}", "format": "table", "instant": true }
       ],
       "transformations": [
         { "id": "merge", "options": {} },
@@ -144,151 +165,44 @@
           "id": "organize",
           "options": {
             "excludeByName": { "Time": true, "__name__": true, "job": true, "instance": true },
+            "indexByName": {
+              "system": 0,
+              "Value #Used": 1,
+              "Value #UsedBytes": 2,
+              "Value #Total": 3,
+              "Value #Dedup": 4,
+              "Value #CPU": 5,
+              "Value #Alerts": 6,
+              "Value #Disks": 7,
+              "Value #ReplBad": 8
+            },
             "renameByName": {
-              "mtree": "MTree",
               "system": "System",
-              "Value #Logical": "Logical Used",
-              "Value #Physical": "Physical Used",
-              "Value #Compression": "Compression x",
-              "Value #Degraded": "Degraded",
-              "Value #RetentionLock": "Retention Lock"
+              "Value #Used": "Used %",
+              "Value #UsedBytes": "Used",
+              "Value #Total": "Total",
+              "Value #Dedup": "Dedup x",
+              "Value #CPU": "CPU %",
+              "Value #Alerts": "Alerts",
+              "Value #Disks": "Disks failed",
+              "Value #ReplBad": "Repl not normal"
             }
           }
         }
       ],
       "fieldConfig": {
-        "defaults": {},
+        "defaults": { "custom": { "align": "auto", "cellOptions": { "type": "auto" } } },
         "overrides": [
-          { "matcher": { "id": "byName", "options": "Logical Used" }, "properties": [ { "id": "unit", "value": "bytes" } ] },
-          { "matcher": { "id": "byName", "options": "Physical Used" }, "properties": [ { "id": "unit", "value": "bytes" } ] },
-          { "matcher": { "id": "byName", "options": "Compression x" }, "properties": [ { "id": "unit", "value": "none" }, { "id": "decimals", "value": 1 } ] },
-          { "matcher": { "id": "byName", "options": "Degraded" }, "properties": [ { "id": "mappings", "value": [ { "type": "value", "options": { "0": { "text": "No", "color": "green" }, "1": { "text": "Yes", "color": "red" } } } ] }, { "id": "custom.cellOptions", "value": { "type": "color-text" } } ] },
-          { "matcher": { "id": "byName", "options": "Retention Lock" }, "properties": [ { "id": "mappings", "value": [ { "type": "value", "options": { "0": { "text": "No", "color": "orange" }, "1": { "text": "Yes", "color": "green" } } } ] }, { "id": "custom.cellOptions", "value": { "type": "color-text" } } ] }
+          { "matcher": { "id": "byName", "options": "Used %" }, "properties": [ { "id": "unit", "value": "percent" }, { "id": "decimals", "value": 1 }, { "id": "custom.cellOptions", "value": { "type": "gauge", "mode": "gradient" } }, { "id": "min", "value": 0 }, { "id": "max", "value": 100 }, { "id": "thresholds", "value": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "yellow", "value": 70 }, { "color": "red", "value": 85 } ] } } ] },
+          { "matcher": { "id": "byName", "options": "Used" }, "properties": [ { "id": "unit", "value": "bytes" } ] },
+          { "matcher": { "id": "byName", "options": "Total" }, "properties": [ { "id": "unit", "value": "bytes" } ] },
+          { "matcher": { "id": "byName", "options": "Dedup x" }, "properties": [ { "id": "unit", "value": "none" }, { "id": "decimals", "value": 1 } ] },
+          { "matcher": { "id": "byName", "options": "CPU %" }, "properties": [ { "id": "unit", "value": "percent" }, { "id": "decimals", "value": 0 } ] },
+          { "matcher": { "id": "byName", "options": "Alerts" }, "properties": [ { "id": "custom.cellOptions", "value": { "type": "color-text" } }, { "id": "thresholds", "value": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "orange", "value": 1 } ] } } ] },
+          { "matcher": { "id": "byName", "options": "Disks failed" }, "properties": [ { "id": "custom.cellOptions", "value": { "type": "color-background" } }, { "id": "thresholds", "value": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "red", "value": 1 } ] } } ] },
+          { "matcher": { "id": "byName", "options": "Repl not normal" }, "properties": [ { "id": "custom.cellOptions", "value": { "type": "color-background" } }, { "id": "thresholds", "value": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "red", "value": 1 } ] } } ] }
         ]
       }
-    },
-    {
-      "type": "row",
-      "title": "Replication",
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 18 }
-    },
-    {
-      "type": "bargauge",
-      "title": "File Replication Network Bytes",
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "gridPos": { "h": 7, "w": 12, "x": 0, "y": 19 },
-      "options": { "orientation": "horizontal", "displayMode": "gradient" },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "decbytes",
-          "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null } ] }
-        }
-      },
-      "targets": [
-        { "refId": "A", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "ppdd_file_replication_network_bytes{system=~\"$system\"}", "legendFormat": "{{context}}", "instant": true }
-      ]
-    },
-    {
-      "type": "stat",
-      "title": "Contexts Needing Resync",
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "gridPos": { "h": 7, "w": 6, "x": 12, "y": 19 },
-      "fieldConfig": { "defaults": { "unit": "short" } },
-      "targets": [
-        { "refId": "A", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "sum(ppdd_mtree_replication_need_resync{system=~\"$system\"}) or vector(0)", "legendFormat": "{{source}}" }
-      ]
-    },
-    {
-      "type": "stat",
-      "title": "Contexts Not Normal",
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "gridPos": { "h": 7, "w": 6, "x": 18, "y": 19 },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "none",
-          "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "red", "value": 1 } ] }
-        }
-      },
-      "targets": [
-        { "refId": "A", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "count(ppdd_mtree_replication_state{system=~\"$system\", state!=\"NORMAL\"} == 1) or vector(0)", "legendFormat": "not normal" }
-      ]
-    },
-    {
-      "type": "row",
-      "title": "Health & Ops",
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 26 }
-    },
-    {
-      "type": "stat",
-      "title": "Failed Disks",
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "gridPos": { "h": 6, "w": 6, "x": 0, "y": 27 },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "none",
-          "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "red", "value": 1 } ] }
-        }
-      },
-      "targets": [
-        { "refId": "A", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "sum(ppdd_disk_failed{system=~\"$system\"})", "legendFormat": "failed" }
-      ]
-    },
-    {
-      "type": "bargauge",
-      "title": "Active Alerts by Severity / Class",
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "gridPos": { "h": 6, "w": 6, "x": 6, "y": 27 },
-      "options": { "orientation": "horizontal", "displayMode": "basic" },
-      "fieldConfig": { "defaults": { "unit": "none" } },
-      "targets": [
-        { "refId": "A", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "sum(ppdd_alerts_active{system=~\"$system\"}) by (severity, class)", "legendFormat": "{{severity}} / {{class}}", "instant": true }
-      ]
-    },
-    {
-      "type": "gauge",
-      "title": "CPU Utilization",
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "gridPos": { "h": 6, "w": 6, "x": 12, "y": 27 },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "percent",
-          "min": 0,
-          "max": 100,
-          "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "yellow", "value": 75 }, { "color": "red", "value": 90 } ] }
-        }
-      },
-      "targets": [
-        { "refId": "A", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "ppdd_system_cpu_percent{system=~\"$system\"}", "legendFormat": "{{system}}" }
-      ]
-    },
-    {
-      "type": "stat",
-      "title": "Collectors Up",
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "gridPos": { "h": 6, "w": 6, "x": 18, "y": 27 },
-      "options": { "colorMode": "background" },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "none",
-          "mappings": [
-            { "type": "value", "options": { "0": { "text": "DOWN", "color": "red" }, "1": { "text": "UP", "color": "green" } } }
-          ]
-        }
-      },
-      "targets": [
-        { "refId": "A", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "ppdd_collector_up{system=~\"$system\"}", "legendFormat": "{{collector}} {{system}}", "instant": true }
-      ]
-    },
-    {
-      "type": "timeseries",
-      "title": "System Throughput",
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "gridPos": { "h": 7, "w": 24, "x": 0, "y": 33 },
-      "fieldConfig": { "defaults": { "unit": "Bps", "custom": { "drawStyle": "line", "lineWidth": 2, "fillOpacity": 10 } } },
-      "targets": [
-        { "refId": "A", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "ppdd_system_read_bytes_per_second{system=~\"$system\"}", "legendFormat": "read {{system}}" },
-        { "refId": "B", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "ppdd_system_write_bytes_per_second{system=~\"$system\"}", "legendFormat": "write {{system}}" }
-      ]
     }
   ]
 }
