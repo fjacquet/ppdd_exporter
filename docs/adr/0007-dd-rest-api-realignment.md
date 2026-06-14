@@ -1,6 +1,6 @@
 # 0007. Realign collectors to the documented DD 7.3 REST API contract
 
-- **Status:** accepted
+- **Status:** accepted (amended by [`ADR-0009`](0009-validate-against-8.7.0-openapi.md))
 - **Date:** 2026-06-03
 - **Deciders:** Fred Jacquet
 

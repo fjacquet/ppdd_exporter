@@ -30,4 +30,5 @@ nav:
       - 0006 Label-key consistency: adr/0006-label-key-consistency-invariant.md
       - 0007 API realignment: adr/0007-dd-rest-api-realignment.md
       - 0008 Supply-chain hardening: adr/0008-ci-supply-chain-hardening.md
+      - 0009 Validate vs 8.7.0 OpenAPI: adr/0009-validate-against-8.7.0-openapi.md
       - Template: adr/0000-template.md

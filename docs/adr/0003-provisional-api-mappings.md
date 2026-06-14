@@ -1,6 +1,6 @@
 # 0003. Treat DD API mappings as provisional until validated
 
-- **Status:** accepted
+- **Status:** superseded by [`ADR-0009`](0009-validate-against-8.7.0-openapi.md)
 - **Date:** 2026-05-30
 - **Deciders:** Fred Jacquet
 
