@@ -48,7 +48,7 @@ Then open:
 
   The Prometheus datasource and all dashboards are auto-provisioned.
 - **Prometheus** — <http://localhost:9090>
-- **Exporter** — <http://localhost:9099/metrics> and <http://localhost:9099/health>
+- **Exporter** — <http://localhost:9441/metrics> and <http://localhost:9441/health>
 
 Tear down with `make demo-down` (or `docker compose down`).
 
@@ -58,7 +58,7 @@ Tear down with `make demo-down` (or `docker compose down`).
   replication contexts incl. one *lagging*, a failed disk, alerts by severity, system perf).
 - The exporter uses `config.demo.yaml` (a 30s interval for a snappy demo) pointed at the
   `mockdd` service.
-- Prometheus scrapes `ppdd_exporter:9099` (`prometheus.yml`).
+- Prometheus scrapes `ppdd_exporter:9441` (`prometheus.yml`).
 - Grafana provisioning lives in `grafana/provisioning/`; the canonical dashboard JSON lives in
   `grafana/dashboards/` (`ppdd-overview`, `ppdd-capacity`, `ppdd-mtrees`, `ppdd-replication`,
   `ppdd-health`), all tagged `ppdd` and cross-linked.

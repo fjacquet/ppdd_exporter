@@ -63,7 +63,7 @@ provenance attestations:
 ```bash
 docker pull ghcr.io/fjacquet/ppdd_exporter:0.2.0   # or :latest
 
-docker run --rm -p 9099:9099 \
+docker run --rm -p 9441:9441 \
   -e PPDD1_PASSWORD=secret \
   -v "$PWD/config.yaml:/etc/ppdd_exporter/config.yaml:ro" \
   ghcr.io/fjacquet/ppdd_exporter:latest

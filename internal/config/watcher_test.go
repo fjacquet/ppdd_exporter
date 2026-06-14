@@ -16,7 +16,7 @@ func TestWatcherEmitsOnSIGHUPFunc(t *testing.T) {
 			"server: {port: \""+port+"\"}\ncollection: {interval: 5m}\n"+
 				"systems:\n  - {name: dd01, host: h, username: u, password: \"${DD01_PASSWORD}\"}\n"), 0o600)
 	}
-	write("9099")
+	write("9441")
 
 	w, err := NewWatcher(path)
 	if err != nil {
@@ -52,7 +52,7 @@ func TestWatcherReloadsOnAtomicRename(t *testing.T) {
 		return []byte("server: {port: \"" + port + "\"}\ncollection: {interval: 5m}\n" +
 			"systems:\n  - {name: dd01, host: h, username: u, password: \"${DD01_PASSWORD}\"}\n")
 	}
-	if err := os.WriteFile(path, cfgBytes("9099"), 0o600); err != nil {
+	if err := os.WriteFile(path, cfgBytes("9441"), 0o600); err != nil {
 		t.Fatal(err)
 	}
 

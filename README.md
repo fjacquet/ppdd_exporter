@@ -12,7 +12,7 @@ Full docs: built with MkDocs Material (see `mkdocs.yml`).
 make cli
 export PPDD1_PASSWORD='your-monitor-password'
 ./bin/ppdd_exporter --config config.yaml
-# metrics: http://localhost:9099/metrics   health: http://localhost:9099/health
+# metrics: http://localhost:9441/metrics   health: http://localhost:9441/health
 ```
 
 ## Try it end-to-end (no appliance needed)
@@ -43,3 +43,15 @@ Capacity & dedup, MTrees, Replication, Health & ops. See [docs/metrics.md](docs/
 ## License
 
 Apache-2.0.
+
+## Node Exporter Full (Grafana 1860)
+
+This repo bundles the community [Node Exporter Full](https://grafana.com/grafana/dashboards/1860-node-exporter-full/)
+dashboard (`node-exporter-full.json`, auto-provisioned). It visualizes **host OS** metrics
+(CPU, memory, disk, network) exposed by [`prom/node-exporter`](https://hub.docker.com/r/prom/node-exporter) —
+**not** this exporter's own metrics.
+
+`node_exporter` is **not** part of this demo stack: it belongs on the hosts you actually want to
+monitor, not bolted onto the exporter's compose. To use this dashboard, run `prom/node-exporter`
+on those hosts and add a `node-exporter` scrape job to your Prometheus; the dashboard then
+visualizes them.

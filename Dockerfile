@@ -10,6 +10,6 @@ RUN CGO_ENABLED=0 go build -ldflags "-X main.version=${VERSION}" -o /out/ppdd_ex
 FROM gcr.io/distroless/static:nonroot
 COPY --from=build /out/ppdd_exporter /ppdd_exporter
 USER nonroot:nonroot
-EXPOSE 9099
+EXPOSE 9441
 ENTRYPOINT ["/ppdd_exporter"]
 CMD ["--config", "/etc/ppdd_exporter/config.yaml"]
