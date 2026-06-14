@@ -6,6 +6,8 @@ All notable changes to this project are documented here. The format is based on
 
 ## [Unreleased]
 
+## [0.7.1] - 2026-06-14
+
 ### Added
 - **Grafana dashboard suite.** Replaced the single overview dashboard with five linked,
   auto-provisioned dashboards (all tagged `ppdd`, with a cross-navigation dropdown):
