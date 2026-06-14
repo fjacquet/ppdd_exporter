@@ -3,7 +3,7 @@
 The image is distroless and runs as a non-root user.
 
 ```bash
-docker run -d --name ppdd_exporter -p 9099:9099 \
+docker run -d --name ppdd_exporter -p 9441:9441 \
   -e PPDD1_PASSWORD=secret \
   -v /etc/ppdd_exporter/config.yaml:/etc/ppdd_exporter/config.yaml:ro \
   ghcr.io/fjacquet/ppdd_exporter:latest

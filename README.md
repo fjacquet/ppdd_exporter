@@ -12,7 +12,7 @@ Full docs: built with MkDocs Material (see `mkdocs.yml`).
 make cli
 export PPDD1_PASSWORD='your-monitor-password'
 ./bin/ppdd_exporter --config config.yaml
-# metrics: http://localhost:9099/metrics   health: http://localhost:9099/health
+# metrics: http://localhost:9441/metrics   health: http://localhost:9441/health
 ```
 
 ## Try it end-to-end (no appliance needed)

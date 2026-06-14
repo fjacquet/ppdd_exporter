@@ -8,7 +8,7 @@ accepts a `passwordFile` reference. A `${VAR}` whose environment variable is uns
 ```yaml
 server:
   host: "0.0.0.0"
-  port: "9099"
+  port: "9441"
   uri: "/metrics"
   logName: ""            # "" -> stdout
 collection:
@@ -32,7 +32,7 @@ systems:
 
 | Key | Default | Notes |
 |---|---|---|
-| `server.port` | `9099` | metrics/health port |
+| `server.port` | `9441` | metrics/health port |
 | `collection.interval` | `5m` | poll cadence |
 | `collection.timeout` | `60s` | per-system timeout |
 | `systems[].port` | `3009` | DD REST API port |

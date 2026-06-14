@@ -18,7 +18,7 @@ services:
     container_name: ppdd_exporter
     command: ["--config", "/etc/ppdd_exporter/config.yaml"]
     ports:
-      - "9099:9099"
+      - "9441:9441"
     environment:
       # config.yaml references the DD password as ${PPDD1_PASSWORD}; the exporter
       # resolves it from this env var at load time (and fails fast if unset).

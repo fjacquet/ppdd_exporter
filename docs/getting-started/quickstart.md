@@ -4,8 +4,8 @@
 make cli
 export PPDD1_PASSWORD='your-monitor-password'
 ./bin/ppdd_exporter --config config.yaml
-# metrics: http://localhost:9099/metrics
-# health:  http://localhost:9099/health
+# metrics: http://localhost:9441/metrics
+# health:  http://localhost:9441/health
 ```
 
 Useful flags:
@@ -34,5 +34,5 @@ scrape_configs:
   - job_name: ppdd
     scrape_interval: 5m      # match collection.interval; data only refreshes that often
     static_configs:
-      - targets: ['localhost:9099']
+      - targets: ['localhost:9441']
 ```
