@@ -1,81 +1,111 @@
-BIN := bin/ppdd_exporter
-DIST := dist
+BIN  := bin/ppdd_exporter
+DIST ?= dist
+COVER ?= coverage.out
+
 VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo dev)
 LDFLAGS := -s -w -X main.version=$(VERSION)
 
 # Pinned tool versions (installed by `make tools`).
-GOLANGCI_LINT_VERSION   ?= v2.12.2
+GOLANGCI_VERSION     ?= v2.12.2
+GORELEASER_VERSION   ?= v2.12.0
 CYCLONEDX_GOMOD_VERSION ?= latest
-GOVULNCHECK_VERSION     ?= latest
 
-.PHONY: tools tools-sbom cli test test-race vet fmt-check lint vuln sbom \
-        sure ci release release-snapshot demo demo-ghcr demo-down clean clean-dist
+.PHONY: all clean clean-dist install tools tools-sbom \
+        lint format fmt-check vet test test-race build vuln sbom \
+        security docs coverage-upload release release-snapshot \
+        sure ci demo demo-ghcr demo-down
+
+.DEFAULT_GOAL := all
+
+all: clean lint test build
 
 # --- tooling ---
 
-# Install pinned dev/CI tooling into $(GOBIN)/$GOPATH/bin.
+# Install pinned dev/CI tooling into $GOBIN / $GOPATH/bin.
 tools:
-	go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@$(GOLANGCI_LINT_VERSION)
-	go install github.com/CycloneDX/cyclonedx-gomod/cmd/cyclonedx-gomod@$(CYCLONEDX_GOMOD_VERSION)
-	go install golang.org/x/vuln/cmd/govulncheck@$(GOVULNCHECK_VERSION)
+	go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@$(GOLANGCI_VERSION)
+	go install golang.org/x/vuln/cmd/govulncheck@latest
+	go install github.com/goreleaser/goreleaser/v2@$(GORELEASER_VERSION)
 
 # Just the SBOM generator — used by the release pipeline (GoReleaser sboms hook).
 tools-sbom:
 	go install github.com/CycloneDX/cyclonedx-gomod/cmd/cyclonedx-gomod@$(CYCLONEDX_GOMOD_VERSION)
 
-# --- quality gates (used by CI) ---
+# --- quality gates ---
+
+install:
+	go mod download
 
 fmt-check:
 	@test -z "$$(gofmt -l . | tee /dev/stderr)"
+
+format:
+	golangci-lint fmt
+
 vet:
 	go vet ./...
+
 lint:
-	golangci-lint run ./...
+	golangci-lint run --timeout=5m
+
 test:
-	go test ./...
+	go test -race -coverprofile=$(COVER) -covermode=atomic ./...
+
 test-race:
 	go test -race -cover ./...
-vuln:
-	govulncheck ./...
 
-# Local convenience gate.
-sure: fmt-check vet test cli
-# Aggregate gate run by CI: fmt + vet + lint + race tests + vuln + build.
-ci: fmt-check vet lint test-race vuln cli
+build:
+	go build -ldflags "$(LDFLAGS)" -o $(BIN) .
+
+vuln:
+	go run golang.org/x/vuln/cmd/govulncheck@latest ./...
 
 # --- artifacts ---
 
-cli:
-	go build -ldflags "$(LDFLAGS)" -o $(BIN) .
-
-# CycloneDX SBOM for the Go module (source/dependency SBOM).
 sbom:
-	@mkdir -p $(DIST)
-	cyclonedx-gomod mod -licenses -json -output $(DIST)/sbom.cdx.json
-	@echo "wrote $(DIST)/sbom.cdx.json"
+	mkdir -p $(DIST)
+	go run github.com/CycloneDX/cyclonedx-gomod/cmd/cyclonedx-gomod@latest mod -json -output $(DIST)/sbom.cdx.json
 
-# Cross-compiled binaries + archives + SBOM + checksums + GitHub Release.
-# Driven by GoReleaser (.goreleaser.yaml). Real releases run from a `v*` tag in CI;
-# this target reproduces that pipeline locally — needs a tag and GITHUB_TOKEN.
+security:
+	uvx semgrep scan --config auto --error --skip-unknown-extensions
+
+docs:
+	uvx --with mkdocs-material --with pymdown-extensions mkdocs build --strict --site-dir site
+
+coverage-upload:
+	uvx --from codecov-cli codecov upload-process --file $(COVER) || true
+
 release: tools-sbom
 	goreleaser release --clean
 
-# Local dry-run: full pipeline (build, archive, SBOM, checksums) without publishing.
 release-snapshot: tools-sbom
 	goreleaser release --snapshot --clean
 	@echo "release artifacts in $(DIST)/"
 
-# End-to-end demo stacks (mockdd -> exporter -> Prometheus -> Grafana).
-# Grafana: http://localhost:3000 (admin/admin). Requires a running Docker daemon.
+# --- aggregate gates ---
+
+# Local convenience gate.
+sure: fmt-check vet test build
+
+# Aggregate gate run by CI: lint + test + build + vuln.
+ci: lint test build vuln
+
+# --- demo stacks ---
+
 demo:
 	docker compose up --build
+
 demo-ghcr:
 	docker compose -f docker-compose.ghcr.yml up
+
 demo-down:
 	docker compose down --remove-orphans
 	docker compose -f docker-compose.ghcr.yml down --remove-orphans
 
+# --- clean ---
+
 clean-dist:
 	rm -rf $(DIST)
+
 clean: clean-dist
-	rm -f $(BIN)
+	rm -f $(BIN) site $(COVER) *.sarif
