@@ -1,5 +1,9 @@
 # ppdd_exporter
 
+[![CI](https://github.com/fjacquet/ppdd_exporter/actions/workflows/ci.yml/badge.svg)](https://github.com/fjacquet/ppdd_exporter/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/fjacquet/ppdd_exporter?sort=semver)](https://github.com/fjacquet/ppdd_exporter/releases/latest)
+[![License](https://img.shields.io/github/license/fjacquet/ppdd_exporter)](https://github.com/fjacquet/ppdd_exporter/blob/HEAD/LICENSE)
+
 A Go Prometheus exporter for **Dell PowerProtect DD (Data Domain)** appliances. One
 process monitors many DD systems, polls each on an interval, and serves metrics at
 `/metrics`. Modeled on `pflex_exporter` (Prometheus-only; OTLP deferred).
