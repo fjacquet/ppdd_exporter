@@ -80,8 +80,6 @@ homebrew_casks:
       owner: fjacquet
       name: homebrew-tap
       token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
-    binaries:
-      - ppdd_exporter
     homepage: https://github.com/fjacquet/ppdd_exporter
     description: Prometheus exporter for Dell PowerProtect DD
     # The binary is unsigned; strip the quarantine bit so Gatekeeper doesn't block it.
