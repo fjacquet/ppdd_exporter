@@ -19,9 +19,16 @@ services:
     command: ["--config", "/etc/ppdd_exporter/config.yaml"]
     ports:
       - "9441:9441"
+    # config.yaml references the appliance host, user, and password as ${PPDD1_*}.
+    # Compose substitutes ${VAR} *in this file* from .env, but that does NOT inject
+    # the values into the container — they must be forwarded explicitly here, or the
+    # exporter fails fast at load with "unset environment variable(s): PPDD1_HOSTNAME".
+    # Each :? fails fast if the var is missing from .env. Added a second system to
+    # config.yaml? Forward its vars here too (e.g. PPDD2_*), or replace this block
+    # with `env_file: .env` to pass the whole file through.
     environment:
-      # config.yaml references the DD password as ${PPDD1_PASSWORD}; the exporter
-      # resolves it from this env var at load time (and fails fast if unset).
+      - PPDD1_HOSTNAME=${PPDD1_HOSTNAME:?set PPDD1_HOSTNAME in .env}
+      - PPDD1_USERNAME=${PPDD1_USERNAME:?set PPDD1_USERNAME in .env}
       - PPDD1_PASSWORD=${PPDD1_PASSWORD:?set PPDD1_PASSWORD in .env}
     volumes:
       # The REAL config (TLS verification on; edit `systems:` for your appliance).

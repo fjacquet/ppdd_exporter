@@ -85,6 +85,13 @@ func Load(path string) (*Config, error) {
 	}
 	for i := range cfg.Systems {
 		s := &cfg.Systems[i]
+		// Interpolate name first so a name like ${PPDD1_HOSTNAME} resolves to a real
+		// label value and any later host/username errors quote the resolved name.
+		name, err := interpolate(s.Name)
+		if err != nil {
+			return nil, fmt.Errorf("system %s name: %w", s.Name, err)
+		}
+		s.Name = name
 		host, err := interpolate(s.Host)
 		if err != nil {
 			return nil, fmt.Errorf("system %s host: %w", s.Name, err)

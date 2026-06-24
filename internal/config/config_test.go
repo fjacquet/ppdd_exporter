@@ -56,6 +56,45 @@ systems:
 	}
 }
 
+func TestLoadInterpolatesName(t *testing.T) {
+	// A name like ${PPDD1_HOSTNAME} should resolve to a real label value, not be
+	// carried through literally as the `system` metric label.
+	t.Setenv("DD01_NAME", "dd01.example.com")
+	dir := t.TempDir()
+	path := filepath.Join(dir, "config.yaml")
+	yaml := `
+systems:
+  - {name: "${DD01_NAME}", host: dd01.example.com, username: u, password: "secret"}
+`
+	if err := os.WriteFile(path, []byte(yaml), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	cfg, err := Load(path)
+	if err != nil {
+		t.Fatalf("Load: %v", err)
+	}
+	if cfg.Systems[0].Name != "dd01.example.com" {
+		t.Fatalf("name = %q, want dd01.example.com", cfg.Systems[0].Name)
+	}
+}
+
+func TestLoadFailsOnMissingNameEnvRef(t *testing.T) {
+	// DD01_NAME intentionally unset: an unresolved ${VAR} in name must be a load
+	// error, not a silent literal ${VAR} label.
+	dir := t.TempDir()
+	path := filepath.Join(dir, "config.yaml")
+	yaml := `
+systems:
+  - {name: "${DD01_NAME}", host: dd01.example.com, username: u, password: "secret"}
+`
+	if err := os.WriteFile(path, []byte(yaml), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := Load(path); err == nil {
+		t.Fatal("expected error when name env var is unset")
+	}
+}
+
 func TestLoadFailsOnMissingHostEnvRef(t *testing.T) {
 	// DD01_HOSTNAME intentionally unset: an unresolved ${VAR} in host must be a
 	// load error, not a silent empty hostname that fails connection later.

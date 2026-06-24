@@ -1,7 +1,7 @@
 # Configuration
 
-The exporter reads a YAML file (default `config.yaml`). The `host`, `username`, and
-`password` fields all support `${ENV_VAR}` interpolation; `password` additionally
+The exporter reads a YAML file (default `config.yaml`). The `name`, `host`, `username`,
+and `password` fields all support `${ENV_VAR}` interpolation; `password` additionally
 accepts a `passwordFile` reference. A `${VAR}` whose environment variable is unset is a
 **load error** (fail fast), not a silent misconfiguration.
 
@@ -46,8 +46,8 @@ systems:
 
 ## Secrets
 
-`${ENV_VAR}` references are interpolated in **host**, **username**, and **password**
-at config-load time. A referenced variable that is not set causes an immediate error
+`${ENV_VAR}` references are interpolated in **name**, **host**, **username**, and
+**password** at config-load time. A referenced variable that is not set causes an immediate error
 (fail fast — a typo in a secret name shows up at startup, not as repeated auth
 failures).
 

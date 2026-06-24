@@ -6,6 +6,22 @@ All notable changes to this project are documented here. The format is based on
 
 ## [Unreleased]
 
+### Added
+- **`${ENV}` interpolation in `systems[].name`.** The system `name` is now interpolated
+  like `host`/`username`/`password`, so `name: ${PPDD1_HOSTNAME}` resolves to a real
+  `system` label value instead of being carried through literally. An unset reference is
+  a fail-fast load error, consistent with the other fields.
+
+### Fixed
+- **Server Compose stack crash-loop.** `docker-compose.server.yml` only forwarded
+  `PPDD1_PASSWORD` into the exporter container, but the shipped `config.yaml` also
+  references `${PPDD1_HOSTNAME}` and `${PPDD1_USERNAME}`. Compose substitutes `${VAR}`
+  *in the compose file* from `.env`, which does not inject those values into the
+  container, so the exporter exited at load with `unset environment variable(s):
+  PPDD1_HOSTNAME` and crash-looped. Now all three `${PPDD1_*}` vars are forwarded
+  (each fails fast if missing from `.env`). The `docker run` example in the Docker
+  deployment docs had the same gap and now passes host/user/password too.
+
 ## [0.7.1] - 2026-06-14
 
 ### Added
