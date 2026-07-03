@@ -7,12 +7,14 @@ All notable changes to this project are documented here. The format is based on
 ## [Unreleased]
 
 ### Added
-- **`ppdd_exporter_build_info{version}` metric.** A constant-`1` gauge whose `version`
-  label carries the running exporter build (set from the `-X main.version` ldflag), so a
-  single scrape confirms which version is actually deployed — no more guessing whether a
-  container is stale. Follows the standard Prometheus build-info convention
-  (`node_exporter_build_info`, `prometheus_build_info`). Documented under a new
-  `exporter` section in `docs/metrics.md`; unlike DD metrics it has no `system` label.
+- **`ppdd_exporter_build_info{version, goversion}` metric.** A constant-`1` gauge whose
+  labels carry the running exporter build (from the `-X main.version` ldflag) and the Go
+  compiler version, so a single scrape confirms which version is actually deployed — no
+  more guessing whether a container is stale. Follows the standard Prometheus build-info
+  convention (`node_exporter_build_info`, `prometheus_build_info`) and the exporter-family
+  standard. Documented under a new `exporter` section in `docs/metrics.md`; unlike DD
+  metrics it has no `system` label. (The `goversion` label was added right after the
+  initial `version`-only shape to align with the family standard.)
 - **`${ENV}` interpolation in `systems[].name`.** The system `name` is now interpolated
   like `host`/`username`/`password`, so `name: ${PPDD1_HOSTNAME}` resolves to a real
   `system` label value instead of being carried through literally. An unset reference is
