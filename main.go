@@ -113,6 +113,7 @@ func run(cfgPath string, once, debug, trace bool) error {
 
 	reg := prometheus.NewRegistry()
 	reg.MustRegister(ppdd.NewPromCollector(store))
+	reg.MustRegister(ppdd.NewBuildInfoCollector(version))
 
 	mux := http.NewServeMux()
 	mux.Handle(cfg.Server.URI, promhttp.HandlerFor(reg, promhttp.HandlerOpts{}))
