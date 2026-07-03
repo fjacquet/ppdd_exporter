@@ -1,7 +1,13 @@
 # Metrics reference
 
-All metrics are gauges and carry a `system` label. `ppdd_collector_up{collector}` is 1
-when a module collected cleanly, 0 otherwise.
+All metrics are gauges. Per-appliance metrics carry a `system` label;
+`ppdd_collector_up{collector}` is 1 when a module collected cleanly, 0 otherwise. The
+exporter-level metrics below are the exception — they describe the exporter process, not
+a DD, so they have no `system` label.
+
+## exporter
+- `ppdd_exporter_build_info{version}` (constant 1; the running exporter version is in the
+  `version` label — scrape it to confirm which build is deployed)
 
 ## capacity
 - `ppdd_filesystem_total_bytes` / `ppdd_filesystem_used_bytes` / `ppdd_filesystem_available_bytes` (from `/system`)

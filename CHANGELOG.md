@@ -7,6 +7,12 @@ All notable changes to this project are documented here. The format is based on
 ## [Unreleased]
 
 ### Added
+- **`ppdd_exporter_build_info{version}` metric.** A constant-`1` gauge whose `version`
+  label carries the running exporter build (set from the `-X main.version` ldflag), so a
+  single scrape confirms which version is actually deployed — no more guessing whether a
+  container is stale. Follows the standard Prometheus build-info convention
+  (`node_exporter_build_info`, `prometheus_build_info`). Documented under a new
+  `exporter` section in `docs/metrics.md`; unlike DD metrics it has no `system` label.
 - **`${ENV}` interpolation in `systems[].name`.** The system `name` is now interpolated
   like `host`/`username`/`password`, so `name: ${PPDD1_HOSTNAME}` resolves to a real
   `system` label value instead of being carried through literally. An unset reference is
