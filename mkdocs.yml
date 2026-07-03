@@ -22,6 +22,7 @@ nav:
   - Metrics reference: metrics.md
   - Deployment:
       - Docker: deployment/docker.md
+      - systemd: deployment/systemd.md
       - End-to-end demo (Compose): deployment/compose-demo.md
   - Architecture decisions:
       - Overview: adr/index.md
