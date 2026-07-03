@@ -13,6 +13,13 @@ All notable changes to this project are documented here. The format is based on
   a fail-fast load error, consistent with the other fields.
 
 ### Fixed
+- **`ppdd_disk_failed` duplicate-series scrape failure.** The `disk` label used the DD
+  `id` field, which is only unique *within* an enclosure — so a disk in shelf 1 and one
+  in shelf 2 both became `disk="1"`, and Prometheus rejected the entire `/metrics` scrape
+  ("collected metric … was collected before with the same name and label values"). The
+  label now uses the globally-unique `device` path (`enclosure.slot`, e.g. `1.1`, `2.1`).
+  The disks endpoint is also now paginated, so systems with more than one page of disks
+  (>200) are fully collected instead of truncated at the first page.
 - **Server Compose stack crash-loop.** `docker-compose.server.yml` only forwarded
   `PPDD1_PASSWORD` into the exporter container, but the shipped `config.yaml` also
   references `${PPDD1_HOSTNAME}` and `${PPDD1_USERNAME}`. Compose substitutes `${VAR}`

@@ -22,22 +22,31 @@ func (Health) Collect(ctx context.Context, c ddclient.Client) ([]Sample, error) 
 }
 
 func healthDisks(ctx context.Context, c ddclient.Client) []Sample {
-	var r struct {
-		DiskInfo []struct {
-			ID     string `json:"id"`
-			Status string `json:"status"` // enum DiskStatusEnum; FAILED == failed
-		} `json:"diskInfo"`
-	}
-	if err := c.Get(ctx, pathDisks, &r); err != nil {
-		return nil
-	}
 	var out []Sample
-	for _, d := range r.DiskInfo {
-		failed := 0.0
-		if d.Status == "FAILED" {
-			failed = 1
+	err := paginate(ctx, c, pathDisks, "", func(page json.RawMessage) (pagingInfo, error) {
+		var r struct {
+			DiskInfo []struct {
+				// device (enclosure.slot, e.g. "1.1") is globally unique; id repeats
+				// across enclosures, so labelling by id collides across shelves.
+				Device string `json:"device"`
+				Status string `json:"status"` // enum DiskStatusEnum; FAILED == failed
+			} `json:"diskInfo"`
+			PagingInfo pagingInfo `json:"paging_info"`
 		}
-		out = append(out, Sample{Name: "ppdd_disk_failed", Labels: []Label{{Key: "disk", Value: d.ID}}, Value: failed})
+		if err := json.Unmarshal(page, &r); err != nil {
+			return pagingInfo{}, err
+		}
+		for _, d := range r.DiskInfo {
+			failed := 0.0
+			if d.Status == "FAILED" {
+				failed = 1
+			}
+			out = append(out, Sample{Name: "ppdd_disk_failed", Labels: []Label{{Key: "disk", Value: d.Device}}, Value: failed})
+		}
+		return r.PagingInfo, nil
+	})
+	if err != nil {
+		return nil
 	}
 	return out
 }
