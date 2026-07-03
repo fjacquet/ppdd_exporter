@@ -6,19 +6,24 @@ All notable changes to this project are documented here. The format is based on
 
 ## [Unreleased]
 
+## [0.8.7] - 2026-07-03
+
 ### Added
-- **`ppdd_exporter_build_info{version, goversion}` metric.** A constant-`1` gauge whose
-  labels carry the running exporter build (from the `-X main.version` ldflag) and the Go
-  compiler version, so a single scrape confirms which version is actually deployed — no
-  more guessing whether a container is stale. Follows the standard Prometheus build-info
-  convention (`node_exporter_build_info`, `prometheus_build_info`) and the exporter-family
-  standard. Documented under a new `exporter` section in `docs/metrics.md`; unlike DD
-  metrics it has no `system` label. (The `goversion` label was added right after the
-  initial `version`-only shape to align with the family standard.)
-- **`${ENV}` interpolation in `systems[].name`.** The system `name` is now interpolated
-  like `host`/`username`/`password`, so `name: ${PPDD1_HOSTNAME}` resolves to a real
-  `system` label value instead of being carried through literally. An unset reference is
-  a fail-fast load error, consistent with the other fields.
+- **`goversion` label on `ppdd_exporter_build_info`.** The build-info gauge now also
+  carries the Go compiler version alongside `version`, aligning the metric with the
+  standard Prometheus build-info convention (`node_exporter_build_info`,
+  `prometheus_build_info`) and the exporter-family standard.
+
+## [0.8.6] - 2026-07-03
+
+### Added
+- **`ppdd_exporter_build_info{version}` metric.** A constant-`1` gauge whose label carries
+  the running exporter build (from the `-X main.version` ldflag), so a single scrape
+  confirms which version is actually deployed — no more guessing whether a container is
+  stale. Documented under a new `exporter` section in `docs/metrics.md`; unlike DD metrics
+  it has no `system` label.
+
+## [0.8.5] - 2026-07-03
 
 ### Fixed
 - **`ppdd_disk_failed` duplicate-series scrape failure.** The `disk` label used the DD
@@ -28,6 +33,23 @@ All notable changes to this project are documented here. The format is based on
   label now uses the globally-unique `device` path (`enclosure.slot`, e.g. `1.1`, `2.1`).
   The disks endpoint is also now paginated, so systems with more than one page of disks
   (>200) are fully collected instead of truncated at the first page.
+
+## [0.8.4] - 2026-07-03
+
+### Added
+- **systemd deployment.** Ship a `ppdd_exporter.service` unit (with an accompanying
+  environment file) and a deployment guide for running the exporter directly on a host
+  under systemd.
+
+## [0.8.3] - 2026-07-01
+
+### Added
+- **`${ENV}` interpolation in `systems[].name`.** The system `name` is now interpolated
+  like `host`/`username`/`password`, so `name: ${PPDD1_HOSTNAME}` resolves to a real
+  `system` label value instead of being carried through literally. An unset reference is
+  a fail-fast load error, consistent with the other fields.
+
+### Fixed
 - **Server Compose stack crash-loop.** `docker-compose.server.yml` only forwarded
   `PPDD1_PASSWORD` into the exporter container, but the shipped `config.yaml` also
   references `${PPDD1_HOSTNAME}` and `${PPDD1_USERNAME}`. Compose substitutes `${VAR}`
@@ -36,6 +58,45 @@ All notable changes to this project are documented here. The format is based on
   PPDD1_HOSTNAME` and crash-looped. Now all three `${PPDD1_*}` vars are forwarded
   (each fails fast if missing from `.env`). The `docker run` example in the Docker
   deployment docs had the same gap and now passes host/user/password too.
+
+### Changed
+- Documentation: use the brand icon as the MkDocs favicon/logo, document handling of
+  special characters in the monitoring password, and add standard status badges to the
+  README.
+
+## [0.8.2] - 2026-06-20
+
+### Fixed
+- **Homebrew cask release.** GoReleaser v2.12.0 (this repo's pin) rejects the `binaries:`
+  field in `homebrew_casks`; dropped it so the cask is generated again (the binary is
+  auto-detected).
+
+### Changed
+- Tooling: migrate CI/docs/release to the `fjacquet/ci` reusable (make-based) workflows,
+  reconcile the Makefile to the canonical target contract, and make the `security` job
+  advisory to match the central default.
+
+## [0.8.1] - 2026-06-16
+
+### Added
+- **Helm chart.** Add `charts/ppdd-exporter/` (modeled on the `idrac_exporter` family
+  chart) plus a workflow that lints charts on PRs and publishes the OCI chart on tag, in
+  lockstep with releases.
+
+## [0.8.0] - 2026-06-14
+
+### Changed
+- **Breaking: canonical metrics port is now `9441`.** The default metrics port moved from
+  `9099` to `9441` as part of a family-wide contiguous block, clear of the Prometheus
+  default-port registry and of `node_exporter`'s `9100`. Updated across the Go default,
+  `config.yaml`, Dockerfile `EXPOSE`, Compose, the Prometheus target, the Kubernetes
+  manifests, and docs. Scrape configs and deployments pointing at `9099` must move to
+  `9441`.
+
+### Added
+- **Node Exporter Full (1860) companion dashboard.** Vendor the community Grafana `1860`
+  dashboard, auto-provisioned as a host-OS companion (requires a `node_exporter` running
+  on the monitored hosts; not bundled in the demo stack).
 
 ## [0.7.1] - 2026-06-14
 
