@@ -1,4 +1,4 @@
 { "diskInfo": [
-  { "id": "1a", "status": "IN_USE" },
-  { "id": "1b", "status": "FAILED" }
-] }
+  { "device": "1.1", "id": "1", "status": "IN_USE" },
+  { "device": "2.1", "id": "1", "status": "FAILED" }
+], "paging_info": { "current_page": 0, "page_entries": 2, "total_entries": 2, "page_size": 200 } }

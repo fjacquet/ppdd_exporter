@@ -26,7 +26,7 @@ when a module collected cleanly, 0 otherwise.
 - `ppdd_file_replication_status{status}` (1 for the current status; `status` ∈ completed|error|warning|unknown)
 
 ## health
-- `ppdd_disk_failed{disk}` (1 if failed)
+- `ppdd_disk_failed{disk}` (1 if failed; `disk` is the `enclosure.slot` device path, e.g. `1.1`, which is unique across shelves — the DD `id` is not)
 - `ppdd_alerts_active{severity, class}` (active alerts only, `is_active=true`; `severity` is the DD enum casing, e.g. `CRITICAL`)
 - `ppdd_system_cpu_percent`
 - `ppdd_system_read_bytes_per_second` / `ppdd_system_write_bytes_per_second`
