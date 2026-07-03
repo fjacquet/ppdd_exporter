@@ -6,8 +6,8 @@ exporter-level metrics below are the exception — they describe the exporter pr
 a DD, so they have no `system` label.
 
 ## exporter
-- `ppdd_exporter_build_info{version}` (constant 1; the running exporter version is in the
-  `version` label — scrape it to confirm which build is deployed)
+- `ppdd_exporter_build_info{version, goversion}` (constant 1; the running exporter version
+  and Go compiler version are in the labels — scrape it to confirm which build is deployed)
 
 ## capacity
 - `ppdd_filesystem_total_bytes` / `ppdd_filesystem_used_bytes` / `ppdd_filesystem_available_bytes` (from `/system`)

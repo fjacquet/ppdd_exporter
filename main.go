@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"os/signal"
+	"runtime"
 	"sort"
 	"strings"
 	"sync"
@@ -113,7 +114,7 @@ func run(cfgPath string, once, debug, trace bool) error {
 
 	reg := prometheus.NewRegistry()
 	reg.MustRegister(ppdd.NewPromCollector(store))
-	reg.MustRegister(ppdd.NewBuildInfoCollector(version))
+	reg.MustRegister(ppdd.NewBuildInfoCollector(version, runtime.Version()))
 
 	mux := http.NewServeMux()
 	mux.Handle(cfg.Server.URI, promhttp.HandlerFor(reg, promhttp.HandlerOpts{}))
