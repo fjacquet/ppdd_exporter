@@ -68,7 +68,7 @@
         }
       },
       "targets": [
-        { "refId": "A", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "100 * ppdd_mtree_logical_used_bytes{system=~\"$system\"} / (ppdd_mtree_quota_hard_limit_bytes{system=~\"$system\"} > 0)", "legendFormat": "{{mtree}}", "instant": true }
+        { "refId": "A", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "100 * ppdd_mtree_logical_used_bytes{system=~\"$system\"} / (ppdd_mtree_quota_hard_limit_bytes{system=~\"$system\"} > 0) or (ppdd_mtree_logical_used_bytes{system=~\"$system\"} >= 0) * 0", "legendFormat": "{{mtree}}", "instant": true }
       ]
     },
     {
