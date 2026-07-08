@@ -150,21 +150,21 @@
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "gridPos": { "h": 12, "w": 24, "x": 0, "y": 6 },
       "targets": [
-        { "refId": "Used", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "100 * ppdd_filesystem_used_bytes{system=~\"$system\"} / ppdd_filesystem_total_bytes{system=~\"$system\"}", "format": "table", "instant": true },
-        { "refId": "UsedBytes", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "ppdd_filesystem_used_bytes{system=~\"$system\"}", "format": "table", "instant": true },
-        { "refId": "Total", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "ppdd_filesystem_total_bytes{system=~\"$system\"}", "format": "table", "instant": true },
-        { "refId": "Dedup", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "ppdd_compression_factor{system=~\"$system\"}", "format": "table", "instant": true },
+        { "refId": "Used", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "max by (system) (100 * ppdd_filesystem_used_bytes{system=~\"$system\"} / ppdd_filesystem_total_bytes{system=~\"$system\"})", "format": "table", "instant": true },
+        { "refId": "UsedBytes", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "sum by (system) (ppdd_filesystem_used_bytes{system=~\"$system\"})", "format": "table", "instant": true },
+        { "refId": "Total", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "sum by (system) (ppdd_filesystem_total_bytes{system=~\"$system\"})", "format": "table", "instant": true },
+        { "refId": "Dedup", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "max by (system) (ppdd_compression_factor{system=~\"$system\"})", "format": "table", "instant": true },
         { "refId": "Alerts", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "sum by (system) (ppdd_alerts_active{system=~\"$system\"})", "format": "table", "instant": true },
         { "refId": "Disks", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "sum by (system) (ppdd_disk_failed{system=~\"$system\"})", "format": "table", "instant": true },
         { "refId": "ReplBad", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "count by (system) (ppdd_mtree_replication_state{system=~\"$system\", state!=\"NORMAL\"} == 1)", "format": "table", "instant": true },
-        { "refId": "CPU", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "ppdd_system_cpu_percent{system=~\"$system\"}", "format": "table", "instant": true }
+        { "refId": "CPU", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "max by (system) (ppdd_system_cpu_percent{system=~\"$system\"})", "format": "table", "instant": true }
       ],
       "transformations": [
-        { "id": "merge", "options": {} },
+        { "id": "joinByField", "options": { "byField": "system", "mode": "outer" } },
         {
           "id": "organize",
           "options": {
-            "excludeByName": { "Time": true, "__name__": true, "job": true, "instance": true },
+            "excludeByName": { "Time": true, "Time 1": true, "Time 2": true, "Time 3": true, "Time 4": true, "Time 5": true, "Time 6": true, "Time 7": true, "__name__": true, "job": true, "instance": true },
             "indexByName": {
               "system": 0,
               "Value #Used": 1,

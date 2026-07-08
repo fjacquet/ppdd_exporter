@@ -83,20 +83,20 @@
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "gridPos": { "h": 12, "w": 24, "x": 0, "y": 11 },
       "targets": [
-        { "refId": "Logical", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "ppdd_mtree_logical_used_bytes{system=~\"$system\"}", "format": "table", "instant": true },
-        { "refId": "Physical", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "ppdd_mtree_physical_used_bytes{system=~\"$system\"}", "format": "table", "instant": true },
-        { "refId": "Compression", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "ppdd_mtree_compression_factor{system=~\"$system\"}", "format": "table", "instant": true },
-        { "refId": "QuotaSoft", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "ppdd_mtree_quota_soft_limit_bytes{system=~\"$system\"}", "format": "table", "instant": true },
-        { "refId": "QuotaHard", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "ppdd_mtree_quota_hard_limit_bytes{system=~\"$system\"}", "format": "table", "instant": true },
-        { "refId": "Degraded", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "ppdd_mtree_degraded{system=~\"$system\"}", "format": "table", "instant": true },
-        { "refId": "RetentionLock", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "ppdd_mtree_retention_lock_enabled{system=~\"$system\"}", "format": "table", "instant": true }
+        { "refId": "Logical", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "sum by (system, mtree) (ppdd_mtree_logical_used_bytes{system=~\"$system\"})", "format": "table", "instant": true },
+        { "refId": "Physical", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "sum by (system, mtree) (ppdd_mtree_physical_used_bytes{system=~\"$system\"})", "format": "table", "instant": true },
+        { "refId": "Compression", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "max by (system, mtree) (ppdd_mtree_compression_factor{system=~\"$system\"})", "format": "table", "instant": true },
+        { "refId": "QuotaSoft", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "sum by (system, mtree) (ppdd_mtree_quota_soft_limit_bytes{system=~\"$system\"})", "format": "table", "instant": true },
+        { "refId": "QuotaHard", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "sum by (system, mtree) (ppdd_mtree_quota_hard_limit_bytes{system=~\"$system\"})", "format": "table", "instant": true },
+        { "refId": "Degraded", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "max by (system, mtree) (ppdd_mtree_degraded{system=~\"$system\"})", "format": "table", "instant": true },
+        { "refId": "RetentionLock", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "max by (system, mtree) (ppdd_mtree_retention_lock_enabled{system=~\"$system\"})", "format": "table", "instant": true }
       ],
       "transformations": [
-        { "id": "merge", "options": {} },
+        { "id": "joinByField", "options": { "byField": "mtree", "mode": "outer" } },
         {
           "id": "organize",
           "options": {
-            "excludeByName": { "Time": true, "__name__": true, "job": true, "instance": true },
+            "excludeByName": { "Time": true, "Time 1": true, "Time 2": true, "Time 3": true, "Time 4": true, "Time 5": true, "Time 6": true, "system 1": true, "system 2": true, "system 3": true, "system 4": true, "system 5": true, "system 6": true, "__name__": true, "job": true, "instance": true },
             "indexByName": {
               "system": 0,
               "mtree": 1,

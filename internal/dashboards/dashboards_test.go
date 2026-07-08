@@ -82,12 +82,40 @@ func TestDashboardsValidJSON(t *testing.T) {
 func TestSystemVarRefreshOnLoad(t *testing.T) {
 	for _, f := range dashboardFiles(t) {
 		d := load(t, f)
+		found := false
 		for _, v := range d.Templating.List {
-			if v.Name == "system" && v.Refresh != 1 {
-				t.Errorf("%s: $system var refresh=%d, want 1 (on dashboard load)", filepath.Base(f), v.Refresh)
+			if v.Name == "system" {
+				found = true
+				if v.Refresh != 1 {
+					t.Errorf("%s: $system var refresh=%d, want 1 (on dashboard load)", filepath.Base(f), v.Refresh)
+				}
 			}
+		}
+		if !found {
+			t.Errorf("%s: no `system` template variable found", filepath.Base(f))
 		}
 	}
 }
 
-// TestMultiQueryTablesJoinNotMerge is added in Task 2.
+func TestMultiQueryTablesJoinNotMerge(t *testing.T) {
+	for _, f := range dashboardFiles(t) {
+		d := load(t, f)
+		eachPanel(d.Panels, func(p ddPanel) {
+			if p.Type != "table" || len(p.Targets) < 2 {
+				return
+			}
+			var hasJoin bool
+			for _, tr := range p.Transformations {
+				if tr.ID == "merge" {
+					t.Errorf("%s: table %q uses 'merge' (row-explodes); use 'joinByField'", filepath.Base(f), p.Title)
+				}
+				if tr.ID == "joinByField" {
+					hasJoin = true
+				}
+			}
+			if !hasJoin {
+				t.Errorf("%s: multi-query table %q has no 'joinByField' transform", filepath.Base(f), p.Title)
+			}
+		})
+	}
+}
