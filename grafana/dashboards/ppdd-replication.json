@@ -29,7 +29,7 @@
         "type": "query",
         "datasource": { "type": "prometheus", "uid": "prometheus" },
         "query": { "query": "label_values(ppdd_filesystem_total_bytes, system)", "refId": "vars" },
-        "refresh": 2,
+        "refresh": 1,
         "includeAll": true,
         "multi": true,
         "current": { "text": "All", "value": "$__all" }
