@@ -29,7 +29,7 @@
         "type": "query",
         "datasource": { "type": "prometheus", "uid": "prometheus" },
         "query": { "query": "label_values(ppdd_filesystem_total_bytes, system)", "refId": "vars" },
-        "refresh": 2,
+        "refresh": 1,
         "includeAll": true,
         "multi": true,
         "current": { "text": "All", "value": "$__all" }
@@ -98,16 +98,16 @@
       "gridPos": { "h": 9, "w": 24, "x": 0, "y": 5 },
       "targets": [
         { "refId": "State", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "label_replace(ppdd_mtree_replication_state{system=~\"$system\"} == 1, \"current_state\", \"$1\", \"state\", \"(.*)\")", "format": "table", "instant": true },
-        { "refId": "Connected", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "ppdd_mtree_replication_connected{system=~\"$system\"}", "format": "table", "instant": true },
-        { "refId": "Enabled", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "ppdd_mtree_replication_enabled{system=~\"$system\"}", "format": "table", "instant": true },
-        { "refId": "Resync", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "ppdd_mtree_replication_need_resync{system=~\"$system\"}", "format": "table", "instant": true }
+        { "refId": "Connected", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "max by (system, source, destination) (ppdd_mtree_replication_connected{system=~\"$system\"})", "format": "table", "instant": true },
+        { "refId": "Enabled", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "max by (system, source, destination) (ppdd_mtree_replication_enabled{system=~\"$system\"})", "format": "table", "instant": true },
+        { "refId": "Resync", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "max by (system, source, destination) (ppdd_mtree_replication_need_resync{system=~\"$system\"})", "format": "table", "instant": true }
       ],
       "transformations": [
-        { "id": "merge", "options": {} },
+        { "id": "joinByField", "options": { "byField": "destination", "mode": "outer" } },
         {
           "id": "organize",
           "options": {
-            "excludeByName": { "Time": true, "__name__": true, "job": true, "instance": true, "state": true, "Value #State": true },
+            "excludeByName": { "Time": true, "Time 1": true, "Time 2": true, "Time 3": true, "system 1": true, "system 2": true, "system 3": true, "source 1": true, "source 2": true, "source 3": true, "__name__": true, "job": true, "instance": true, "state": true, "Value #State": true },
             "indexByName": {
               "system": 0,
               "source": 1,
@@ -175,16 +175,16 @@
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 22 },
       "targets": [
-        { "refId": "Network", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "ppdd_file_replication_network_bytes{system=~\"$system\"}", "format": "table", "instant": true },
-        { "refId": "Logical", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "ppdd_file_replication_logical_replicated_bytes{system=~\"$system\"}", "format": "table", "instant": true },
-        { "refId": "Files", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "ppdd_file_replication_active_files{system=~\"$system\"}", "format": "table", "instant": true }
+        { "refId": "Network", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "sum by (system, context) (ppdd_file_replication_network_bytes{system=~\"$system\"})", "format": "table", "instant": true },
+        { "refId": "Logical", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "sum by (system, context) (ppdd_file_replication_logical_replicated_bytes{system=~\"$system\"})", "format": "table", "instant": true },
+        { "refId": "Files", "datasource": { "type": "prometheus", "uid": "prometheus" }, "expr": "sum by (system, context) (ppdd_file_replication_active_files{system=~\"$system\"})", "format": "table", "instant": true }
       ],
       "transformations": [
-        { "id": "merge", "options": {} },
+        { "id": "joinByField", "options": { "byField": "context", "mode": "outer" } },
         {
           "id": "organize",
           "options": {
-            "excludeByName": { "Time": true, "__name__": true, "job": true, "instance": true },
+            "excludeByName": { "Time": true, "Time 1": true, "Time 2": true, "system 1": true, "system 2": true, "__name__": true, "job": true, "instance": true },
             "indexByName": { "system": 0, "context": 1, "Value #Network": 2, "Value #Logical": 3, "Value #Files": 4 },
             "renameByName": {
               "system": "System",
