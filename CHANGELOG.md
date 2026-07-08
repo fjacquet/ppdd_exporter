@@ -6,6 +6,8 @@ All notable changes to this project are documented here. The format is based on
 
 ## [Unreleased]
 
+## [0.8.8] - 2026-07-08
+
 ### Fixed
 - Grafana detail tables (Systems at a glance, MTree detail, replication contexts) now render
   one row per entity instead of one row per metric (joinByField replaces the merge transform).
