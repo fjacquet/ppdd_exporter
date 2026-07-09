@@ -6,6 +6,10 @@ All notable changes to this project are documented here. The format is based on
 
 ## [Unreleased]
 
+### Added
+- Dashboard screenshots (Overview, Capacity & Dedup, MTrees, Health & Ops) in the
+  Compose demo docs.
+
 ## [0.8.8] - 2026-07-08
 
 ### Fixed
