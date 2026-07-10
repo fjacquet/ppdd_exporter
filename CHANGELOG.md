@@ -10,6 +10,16 @@ All notable changes to this project are documented here. The format is based on
 - Dashboard screenshots (Overview, Capacity & Dedup, MTrees, Health & Ops) in the
   Compose demo docs.
 
+## [0.8.9] - 2026-07-10
+
+### Security
+- Bumped Go to 1.26.5 to remediate GO-2026-5856 (crypto/tls) reported by govulncheck.
+
+### Fixed
+- Restored multi-arch GHCR container publishing (`dockers_v2` + `Dockerfile.goreleaser`),
+  which had been dropped from the release pipeline — `ghcr.io/fjacquet/ppdd_exporter` was
+  frozen at 0.8.1 while binaries continued to ship.
+
 ## [0.8.8] - 2026-07-08
 
 ### Fixed

@@ -1,0 +1,14 @@
+# Used by GoReleaser (dockers_v2). The binary is cross-compiled by the build pipe;
+# buildx lays it out per-platform as ${TARGETPLATFORM}/ppdd_exporter in the context.
+# For local/dev builds from source, use the multi-stage ./Dockerfile instead.
+FROM gcr.io/distroless/static:nonroot
+
+ARG TARGETPLATFORM
+COPY ${TARGETPLATFORM}/ppdd_exporter /ppdd_exporter
+COPY config.yaml /etc/ppdd_exporter/config.yaml
+
+USER nonroot:nonroot
+EXPOSE 9441
+
+ENTRYPOINT ["/ppdd_exporter"]
+CMD ["--config", "/etc/ppdd_exporter/config.yaml"]
