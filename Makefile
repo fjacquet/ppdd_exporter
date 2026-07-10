@@ -7,7 +7,7 @@ LDFLAGS := -s -w -X main.version=$(VERSION)
 
 # Pinned tool versions (installed by `make tools`).
 GOLANGCI_VERSION     ?= v2.12.2
-GORELEASER_VERSION   ?= v2.12.0
+GORELEASER_VERSION   ?= v2.16.0
 CYCLONEDX_GOMOD_VERSION ?= latest
 
 .PHONY: all clean clean-dist install tools tools-sbom \
