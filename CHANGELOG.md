@@ -6,7 +6,11 @@ All notable changes to this project are documented here. The format is based on
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-07-14
+
 ### Added
+
+- **Env-driven TLS verification skip (`PPDD1_SKIP_CERTIFICATE`)** — the per-system `insecureSkipVerify` setting now accepts either a native YAML boolean or a `${VAR}` environment reference (e.g. `${PPDD1_SKIP_CERTIFICATE}`), resolved at startup, matching the existing `${PPDD1_*}` pattern. The active default is unchanged; the env form is opt-in via a documented comment in `config.yaml`.
 - Dashboard screenshots (Overview, Capacity & Dedup, MTrees, Health & Ops) in the
   Compose demo docs.
 
