@@ -30,6 +30,9 @@ services:
       - PPDD1_HOSTNAME=${PPDD1_HOSTNAME:?set PPDD1_HOSTNAME in .env}
       - PPDD1_USERNAME=${PPDD1_USERNAME:?set PPDD1_USERNAME in .env}
       - PPDD1_PASSWORD=${PPDD1_PASSWORD:?set PPDD1_PASSWORD in .env}
+      # Optional: only consumed if config.yaml's insecureSkipVerify references
+      # ${PPDD1_SKIP_CERTIFICATE}. Defaults to false (TLS verification on).
+      - PPDD1_SKIP_CERTIFICATE=${PPDD1_SKIP_CERTIFICATE:-false}
     volumes:
       # The REAL config (TLS verification on; edit `systems:` for your appliance).
       - ./config.yaml:/etc/ppdd_exporter/config.yaml:ro

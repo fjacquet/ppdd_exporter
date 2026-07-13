@@ -204,7 +204,7 @@ func buildClients(cfg *config.Config, trace bool) []ddclient.Client {
 	for _, s := range cfg.Systems {
 		clients = append(clients, ddclient.NewSystemClient(ddclient.Config{
 			Name: s.Name, BaseURL: s.BaseURL(), Username: s.Username,
-			Password: s.Password, InsecureSkipVerify: s.InsecureSkipVerify,
+			Password: s.Password, InsecureSkipVerify: s.InsecureSkipVerify.Bool(),
 			Trace: trace,
 		}))
 	}

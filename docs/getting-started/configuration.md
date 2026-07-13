@@ -19,7 +19,7 @@ systems:
     host: "${PPDD1_HOSTNAME}"    # or a literal: dd01.example.com — :3009 implied
     username: "${PPDD1_USERNAME}"  # a read-only/monitor DD user suffices
     password: "${PPDD1_PASSWORD}"
-    # insecureSkipVerify: true   # see warning below
+    # insecureSkipVerify: false  # or ${PPDD1_SKIP_CERTIFICATE} — see warning below
 ```
 
 !!! tip "Single-system env convenience vs multi-system `config.yaml`"
@@ -43,6 +43,12 @@ systems:
     connection to man-in-the-middle attacks. Leave it off in production; only enable
     it for dev/test against an appliance with a self-signed cert (the Compose demo's
     `config.demo.yaml` uses it to reach the bundled `mockdd`).
+
+    Like `host`/`username`/`password`, it accepts a `${ENV_VAR}` reference instead of
+    a literal — resolved at config-load time, e.g. `insecureSkipVerify:
+    ${PPDD1_SKIP_CERTIFICATE}`. A native boolean still works unchanged. An unset
+    referenced variable is a load error (fail fast); a variable set to an empty
+    string resolves to `false`.
 
 ## Secrets
 

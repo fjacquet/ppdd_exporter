@@ -146,6 +146,120 @@ systems:
 	}
 }
 
+func TestLoadInsecureSkipVerifyNativeBool(t *testing.T) {
+	// Existing native-bool configs must keep working after the EnvBool retype.
+	dir := t.TempDir()
+	path := filepath.Join(dir, "config.yaml")
+	yaml := `
+systems:
+  - {name: dd01, host: dd01.example.com, username: u, password: "secret", insecureSkipVerify: true}
+`
+	if err := os.WriteFile(path, []byte(yaml), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	cfg, err := Load(path)
+	if err != nil {
+		t.Fatalf("Load: %v", err)
+	}
+	if !cfg.Systems[0].InsecureSkipVerify.Bool() {
+		t.Fatal("insecureSkipVerify = false, want true (native bool)")
+	}
+}
+
+func TestLoadInsecureSkipVerifyDefaultsFalse(t *testing.T) {
+	// Omitted field must default to false, matching the pre-EnvBool zero value.
+	dir := t.TempDir()
+	path := filepath.Join(dir, "config.yaml")
+	yaml := `
+systems:
+  - {name: dd01, host: dd01.example.com, username: u, password: "secret"}
+`
+	if err := os.WriteFile(path, []byte(yaml), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	cfg, err := Load(path)
+	if err != nil {
+		t.Fatalf("Load: %v", err)
+	}
+	if cfg.Systems[0].InsecureSkipVerify.Bool() {
+		t.Fatal("insecureSkipVerify = true, want false (default)")
+	}
+}
+
+func TestLoadInsecureSkipVerifyEnvRefTrue(t *testing.T) {
+	t.Setenv("PPDD1_SKIP_CERTIFICATE", "true")
+	dir := t.TempDir()
+	path := filepath.Join(dir, "config.yaml")
+	yaml := `
+systems:
+  - {name: dd01, host: dd01.example.com, username: u, password: "secret", insecureSkipVerify: "${PPDD1_SKIP_CERTIFICATE}"}
+`
+	if err := os.WriteFile(path, []byte(yaml), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	cfg, err := Load(path)
+	if err != nil {
+		t.Fatalf("Load: %v", err)
+	}
+	if !cfg.Systems[0].InsecureSkipVerify.Bool() {
+		t.Fatal("insecureSkipVerify = false, want true (env ref)")
+	}
+}
+
+func TestLoadInsecureSkipVerifyEnvRefEmptyResolvesFalse(t *testing.T) {
+	// Set but empty: interpolate() succeeds (var is present), and Resolve treats
+	// an empty expansion as false rather than erroring.
+	t.Setenv("PPDD1_SKIP_CERTIFICATE", "")
+	dir := t.TempDir()
+	path := filepath.Join(dir, "config.yaml")
+	yaml := `
+systems:
+  - {name: dd01, host: dd01.example.com, username: u, password: "secret", insecureSkipVerify: "${PPDD1_SKIP_CERTIFICATE}"}
+`
+	if err := os.WriteFile(path, []byte(yaml), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	cfg, err := Load(path)
+	if err != nil {
+		t.Fatalf("Load: %v", err)
+	}
+	if cfg.Systems[0].InsecureSkipVerify.Bool() {
+		t.Fatal("insecureSkipVerify = true, want false (empty expansion)")
+	}
+}
+
+func TestLoadInsecureSkipVerifyEnvRefUnsetIsLoadError(t *testing.T) {
+	// Unset (not just empty) ${VAR} must fail fast, matching host/username/password policy.
+	dir := t.TempDir()
+	path := filepath.Join(dir, "config.yaml")
+	yaml := `
+systems:
+  - {name: dd01, host: dd01.example.com, username: u, password: "secret", insecureSkipVerify: "${PPDD1_SKIP_CERTIFICATE}"}
+`
+	if err := os.WriteFile(path, []byte(yaml), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := Load(path); err == nil {
+		t.Fatal("expected error when insecureSkipVerify env var is unset")
+	}
+}
+
+func TestLoadInsecureSkipVerifyNonBooleanErrors(t *testing.T) {
+	t.Setenv("PPDD1_SKIP_CERTIFICATE", "maybe")
+	dir := t.TempDir()
+	path := filepath.Join(dir, "config.yaml")
+	yaml := `
+systems:
+  - {name: dd01, host: dd01.example.com, username: u, password: "secret", insecureSkipVerify: "${PPDD1_SKIP_CERTIFICATE}"}
+`
+	if err := os.WriteFile(path, []byte(yaml), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := Load(path); err == nil {
+		t.Fatal("expected error when insecureSkipVerify env var is not a boolean")
+	}
+}
+
 func TestLoadRejectsEmptySystems(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "c.yaml")
