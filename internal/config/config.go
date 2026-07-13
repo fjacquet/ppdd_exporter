@@ -13,13 +13,13 @@ import (
 
 // System is one DD appliance to monitor.
 type System struct {
-	Name               string `yaml:"name"`
-	Host               string `yaml:"host"`
-	Port               int    `yaml:"port"` // defaults to 3009
-	Username           string `yaml:"username"`
-	Password           string `yaml:"password"`
-	PasswordFile       string `yaml:"passwordFile"`
-	InsecureSkipVerify bool   `yaml:"insecureSkipVerify"`
+	Name               string  `yaml:"name"`
+	Host               string  `yaml:"host"`
+	Port               int     `yaml:"port"` // defaults to 3009
+	Username           string  `yaml:"username"`
+	Password           string  `yaml:"password"`
+	PasswordFile       string  `yaml:"passwordFile"`
+	InsecureSkipVerify EnvBool `yaml:"insecureSkipVerify"`
 }
 
 // BaseURL returns the https://host:port root for the DD REST API.
@@ -113,6 +113,9 @@ func Load(path string) (*Config, error) {
 				return nil, fmt.Errorf("system %s passwordFile: %w", s.Name, err)
 			}
 			s.Password = strings.TrimSpace(string(b))
+		}
+		if err := s.InsecureSkipVerify.Resolve(interpolate); err != nil {
+			return nil, fmt.Errorf("system %s insecureSkipVerify: %w", s.Name, err)
 		}
 	}
 	if cfg.Server.Port == "" {

@@ -18,4 +18,7 @@ systems:
     # insecureSkipVerify disables TLS certificate verification (man-in-the-middle
     # risk). Leave it off in production; only enable for dev/test against a DD with
     # a self-signed cert (see config.demo.yaml, which targets the mockdd appliance).
-    # insecureSkipVerify: true
+    # Accepts a native boolean or a ${VAR} env reference resolved at startup:
+    #   insecureSkipVerify: true
+    #   insecureSkipVerify: ${PPDD1_SKIP_CERTIFICATE}
+    # insecureSkipVerify: false
