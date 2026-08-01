@@ -121,6 +121,8 @@ func run(cfgPath string, once, debug, trace bool) error {
 	mux.HandleFunc("/health", func(w http.ResponseWriter, _ *http.Request) {
 		healthHandler(w, store)
 	})
+	mux.HandleFunc("/livez", staticOKHandler)
+	mux.HandleFunc("/readyz", staticOKHandler)
 
 	srv := &http.Server{
 		Addr:              cfg.Server.Host + ":" + cfg.Server.Port,
@@ -243,16 +245,17 @@ func healthHandler(w http.ResponseWriter, store *ppdd.SnapshotStore) {
 		BuiltAt string      `json:"built_at"`
 		Systems []sysHealth `json:"systems"`
 	}{BuiltAt: snap.BuiltAt.Format(time.RFC3339)}
-	healthy := len(snap.Systems) > 0
 	for _, s := range snap.Systems {
 		out.Systems = append(out.Systems, sysHealth{s.System, s.OK, s.LastScrape.Format(time.RFC3339), s.Err})
-		if !s.OK {
-			healthy = false
-		}
 	}
 	w.Header().Set("Content-Type", "application/json")
-	if !healthy {
-		w.WriteHeader(http.StatusServiceUnavailable)
-	}
 	_ = json.NewEncoder(w).Encode(out)
+}
+
+// staticOKHandler always answers 200 — no collection state, nothing that
+// can make it fail. /livez and /readyz both use it: a probe wired here can
+// never be the reason a healthy process gets restarted or pulled from
+// rotation.
+func staticOKHandler(w http.ResponseWriter, _ *http.Request) {
+	w.WriteHeader(http.StatusOK)
 }
