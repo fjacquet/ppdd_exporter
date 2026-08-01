@@ -6,6 +6,20 @@ All notable changes to this project are documented here. The format is based on
 
 ## [Unreleased]
 
+### Added
+
+- `/livez` and `/readyz`: probe endpoints that always answer 200, with no
+  dependency on system reachability or the collection cycle. See ADR-0010.
+
+### Changed
+
+- `/health` always answers 200, never 503. The JSON body's per-system
+  `ok`/`err` fields are unchanged and remain the way to tell whether a
+  system is degraded — read the body, not the status code. See ADR-0010.
+  Not a breaking change: the path and JSON shape are unchanged.
+- The chart's default `livenessProbe`/`readinessProbe` now point at
+  `/livez`/`/readyz` instead of `/health`.
+
 ## [0.9.0] - 2026-07-14
 
 ### Added

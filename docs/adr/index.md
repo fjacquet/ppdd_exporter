@@ -19,3 +19,4 @@ here.
 | [0007](0007-dd-rest-api-realignment.md) | Realign collectors to the documented DD 7.3 REST API | accepted (amended by [0009](0009-validate-against-8.7.0-openapi.md)) |
 | [0008](0008-ci-supply-chain-hardening.md) | CI/CD supply-chain hardening: scanning, SHA-pinned Actions, GoReleaser | accepted |
 | [0009](0009-validate-against-8.7.0-openapi.md) | Validate DD API mappings against the checked-in 8.7.0 OpenAPI spec | accepted |
+| [0010](0010-health-always-200-and-static-probes.md) | `/livez`/`/readyz` static probes; `/health` always answers 200 | accepted |
