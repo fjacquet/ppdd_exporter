@@ -20,3 +20,4 @@ here.
 | [0008](0008-ci-supply-chain-hardening.md) | CI/CD supply-chain hardening: scanning, SHA-pinned Actions, GoReleaser | accepted |
 | [0009](0009-validate-against-8.7.0-openapi.md) | Validate DD API mappings against the checked-in 8.7.0 OpenAPI spec | accepted |
 | [0010](0010-health-always-200-and-static-probes.md) | `/livez`/`/readyz` static probes; `/health` always answers 200 | accepted |
+| [0011](0011-alpine-standard.md) | Alpine standard: container base image standardized on Alpine, family-wide; breaking UID change (65532 → 10001) | accepted |

@@ -37,6 +37,12 @@ services:
       # The REAL config (TLS verification on; edit `systems:` for your appliance).
       - ./config.yaml:/etc/ppdd_exporter/config.yaml:ro
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1:9441/livez"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
 
   prometheus:
     image: prom/prometheus:latest

@@ -6,6 +6,20 @@ All notable changes to this project are documented here. The format is based on
 
 ## [Unreleased]
 
+### Breaking
+
+- The published Docker image's base changes from
+  `gcr.io/distroless/static:nonroot` to `alpine:latest`. The container UID
+  changes from `65532` to a named user at `10001`. If you pin `runAsUser`,
+  `fsGroup`, or similar in your own deployment manifests against the old UID,
+  update it. See ADR-0011.
+
+### Added
+
+- `HEALTHCHECK` on both images, checking `/livez`; `healthcheck:` on all three
+  compose stacks (`docker-compose.yml`, `docker-compose.ghcr.yml`,
+  `docker-compose.server.yml`).
+
 ## [0.10.0] - 2026-08-01
 
 ### Added
