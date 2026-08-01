@@ -1,6 +1,7 @@
 # Docker deployment
 
-The image is distroless and runs as a non-root user.
+The image is Alpine-based and runs as the non-root user `ppdd` (uid 10001). It
+ships a Docker `HEALTHCHECK` against `/livez`.
 
 ```bash
 docker run -d --name ppdd_exporter -p 9441:9441 \
@@ -17,7 +18,8 @@ config references must exist in the container's environment or the exporter exit
 load with `unset environment variable(s): …`. (Alternatively, bake the literal host and
 username into `config.yaml` and pass only `-e PPDD1_PASSWORD`.)
 
-Health and metrics are on the same port (`/health`, `/metrics`).
+Health and metrics are on the same port (`/health`, `/metrics`); the container's
+`HEALTHCHECK` uses the more specific `/livez`/`/readyz` probes instead.
 
 ## Full stack on a server (Compose)
 
