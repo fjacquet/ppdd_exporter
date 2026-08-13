@@ -91,6 +91,24 @@ Already-set environment variables **always take precedence** over `.env` values,
 so secret injection (systemd `Environment=`, Kubernetes secrets, CI) can never be
 shadowed by a stray file.
 
+## Fallback values: `${VAR:-default}`
+
+A bare `${VAR}` **fails at startup** when the variable is unset — misconfiguration should
+be loud rather than authenticate with an empty secret. Where a safe default exists, write
+`${VAR:-default}` instead: the reference then never errors, falling back when the variable
+is unset *or* empty, exactly as in the shell and in `docker-compose.yml`. That is why the
+shipped `config.yaml` can be env-driven and still start out of the box:
+
+```yaml
+insecureSkipVerify: "${PPDD1_SKIP_CERTIFICATE:-false}"
+```
+
+`false` is this exporter's original shipped default, so a host that never exported
+`PPDD1_SKIP_CERTIFICATE` behaves exactly as before.
+
+Use it for settings, not for secrets — a `${PPDD1_PASSWORD:-}` would silently turn a missing
+password into an empty one.
+
 ## Hot reload
 
 Config reloads on **SIGHUP** or when the file changes (the watcher follows the parent

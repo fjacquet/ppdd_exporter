@@ -21,4 +21,6 @@ systems:
     # Accepts a native boolean or a ${VAR} env reference resolved at startup:
     #   insecureSkipVerify: true
     #   insecureSkipVerify: ${PPDD1_SKIP_CERTIFICATE}
-    # insecureSkipVerify: false
+    # The ":-false" fallback keeps startup working when the variable is not exported; a
+    # bare ${PPDD1_SKIP_CERTIFICATE} would abort instead, as bare references do for secrets.
+    insecureSkipVerify: "${PPDD1_SKIP_CERTIFICATE:-false}"
