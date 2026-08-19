@@ -37,10 +37,12 @@
 ## Task 1: Guard test + `$system` refresh → on-load (all 5 dashboards)
 
 **Files:**
+
 - Create: `internal/dashboards/dashboards_test.go`
 - Modify: `grafana/dashboards/ppdd-overview.json`, `ppdd-mtrees.json`, `ppdd-replication.json`, `ppdd-capacity.json`, `ppdd-health.json`
 
 **Interfaces:**
+
 - Produces: a `go test` package `dashboards` with `TestDashboardsValidJSON`, `TestSystemVarRefreshOnLoad` (Task 2 adds a third test to the same file).
 
 - [ ] **Step 1: Write the failing tests**
@@ -51,94 +53,94 @@ Create `internal/dashboards/dashboards_test.go`:
 package dashboards
 
 import (
-	"encoding/json"
-	"os"
-	"path/filepath"
-	"runtime"
-	"strings"
-	"testing"
+ "encoding/json"
+ "os"
+ "path/filepath"
+ "runtime"
+ "strings"
+ "testing"
 )
 
 // dashboardFiles returns every ppdd-*.json under grafana/dashboards, resolved
 // from the repo root (located by walking up to go.mod) so the test is
 // independent of the working directory `go test` runs in.
 func dashboardFiles(t *testing.T) []string {
-	t.Helper()
-	_, self, _, _ := runtime.Caller(0)
-	root := filepath.Dir(self)
-	for {
-		if _, err := os.Stat(filepath.Join(root, "go.mod")); err == nil {
-			break
-		}
-		parent := filepath.Dir(root)
-		if parent == root {
-			t.Fatal("could not locate repo root (go.mod)")
-		}
-		root = parent
-	}
-	files, err := filepath.Glob(filepath.Join(root, "grafana", "dashboards", "ppdd-*.json"))
-	if err != nil || len(files) == 0 {
-		t.Fatalf("no dashboards matched (err=%v)", err)
-	}
-	return files
+ t.Helper()
+ _, self, _, _ := runtime.Caller(0)
+ root := filepath.Dir(self)
+ for {
+  if _, err := os.Stat(filepath.Join(root, "go.mod")); err == nil {
+   break
+  }
+  parent := filepath.Dir(root)
+  if parent == root {
+   t.Fatal("could not locate repo root (go.mod)")
+  }
+  root = parent
+ }
+ files, err := filepath.Glob(filepath.Join(root, "grafana", "dashboards", "ppdd-*.json"))
+ if err != nil || len(files) == 0 {
+  t.Fatalf("no dashboards matched (err=%v)", err)
+ }
+ return files
 }
 
 type ddTransform struct {
-	ID string `json:"id"`
+ ID string `json:"id"`
 }
 type ddPanel struct {
-	Title           string            `json:"title"`
-	Type            string            `json:"type"`
-	Targets         []json.RawMessage `json:"targets"`
-	Transformations []ddTransform     `json:"transformations"`
-	Panels          []ddPanel         `json:"panels"`
+ Title           string            `json:"title"`
+ Type            string            `json:"type"`
+ Targets         []json.RawMessage `json:"targets"`
+ Transformations []ddTransform     `json:"transformations"`
+ Panels          []ddPanel         `json:"panels"`
 }
 type ddVar struct {
-	Name    string `json:"name"`
-	Refresh int    `json:"refresh"`
+ Name    string `json:"name"`
+ Refresh int    `json:"refresh"`
 }
 type ddDashboard struct {
-	Templating struct {
-		List []ddVar `json:"list"`
-	} `json:"templating"`
-	Panels []ddPanel `json:"panels"`
+ Templating struct {
+  List []ddVar `json:"list"`
+ } `json:"templating"`
+ Panels []ddPanel `json:"panels"`
 }
 
 func load(t *testing.T, path string) ddDashboard {
-	t.Helper()
-	b, err := os.ReadFile(path)
-	if err != nil {
-		t.Fatalf("read %s: %v", path, err)
-	}
-	var d ddDashboard
-	if err := json.Unmarshal(b, &d); err != nil {
-		t.Fatalf("%s is not valid JSON: %v", filepath.Base(path), err)
-	}
-	return d
+ t.Helper()
+ b, err := os.ReadFile(path)
+ if err != nil {
+  t.Fatalf("read %s: %v", path, err)
+ }
+ var d ddDashboard
+ if err := json.Unmarshal(b, &d); err != nil {
+  t.Fatalf("%s is not valid JSON: %v", filepath.Base(path), err)
+ }
+ return d
 }
 
 func eachPanel(panels []ddPanel, fn func(ddPanel)) {
-	for _, p := range panels {
-		fn(p)
-		eachPanel(p.Panels, fn)
-	}
+ for _, p := range panels {
+  fn(p)
+  eachPanel(p.Panels, fn)
+ }
 }
 
 func TestDashboardsValidJSON(t *testing.T) {
-	for _, f := range dashboardFiles(t) {
-		load(t, f)
-	}
+ for _, f := range dashboardFiles(t) {
+  load(t, f)
+ }
 }
 
 func TestSystemVarRefreshOnLoad(t *testing.T) {
-	for _, f := range dashboardFiles(t) {
-		d := load(t, f)
-		for _, v := range d.Templating.List {
-			if v.Name == "system" && v.Refresh != 1 {
-				t.Errorf("%s: $system var refresh=%d, want 1 (on dashboard load)", filepath.Base(f), v.Refresh)
-			}
-		}
-	}
+ for _, f := range dashboardFiles(t) {
+  d := load(t, f)
+  for _, v := range d.Templating.List {
+   if v.Name == "system" && v.Refresh != 1 {
+    t.Errorf("%s: $system var refresh=%d, want 1 (on dashboard load)", filepath.Base(f), v.Refresh)
+   }
+  }
+ }
 }
 
 // TestMultiQueryTablesJoinNotMerge is added in Task 2.
@@ -185,10 +187,12 @@ gains `excludeByName` entries for the duplicate `Time N` / secondary-key columns
 appends. Exact duplicate names are confirmed by rendering (verify steps below).
 
 **Files:**
+
 - Modify: `internal/dashboards/dashboards_test.go` (add third test)
 - Modify: `ppdd-overview.json`, `ppdd-mtrees.json`, `ppdd-replication.json`
 
 **Interfaces:**
+
 - Consumes: `dashboardFiles`, `ddPanel`, `eachPanel` from Task 1.
 
 - [ ] **Step 1: Add the failing join test**
@@ -197,26 +201,26 @@ Append to `internal/dashboards/dashboards_test.go`:
 
 ```go
 func TestMultiQueryTablesJoinNotMerge(t *testing.T) {
-	for _, f := range dashboardFiles(t) {
-		d := load(t, f)
-		eachPanel(d.Panels, func(p ddPanel) {
-			if p.Type != "table" || len(p.Targets) < 2 {
-				return
-			}
-			var hasJoin bool
-			for _, tr := range p.Transformations {
-				if tr.ID == "merge" {
-					t.Errorf("%s: table %q uses 'merge' (row-explodes); use 'joinByField'", filepath.Base(f), p.Title)
-				}
-				if tr.ID == "joinByField" {
-					hasJoin = true
-				}
-			}
-			if !hasJoin {
-				t.Errorf("%s: multi-query table %q has no 'joinByField' transform", filepath.Base(f), p.Title)
-			}
-		})
-	}
+ for _, f := range dashboardFiles(t) {
+  d := load(t, f)
+  eachPanel(d.Panels, func(p ddPanel) {
+   if p.Type != "table" || len(p.Targets) < 2 {
+    return
+   }
+   var hasJoin bool
+   for _, tr := range p.Transformations {
+    if tr.ID == "merge" {
+     t.Errorf("%s: table %q uses 'merge' (row-explodes); use 'joinByField'", filepath.Base(f), p.Title)
+    }
+    if tr.ID == "joinByField" {
+     hasJoin = true
+    }
+   }
+   if !hasJoin {
+    t.Errorf("%s: multi-query table %q has no 'joinByField' transform", filepath.Base(f), p.Title)
+   }
+  })
+ }
 }
 ```
 
@@ -333,11 +337,14 @@ Expected: PASS (all three tests, including `TestMultiQueryTablesJoinNotMerge`).
 - [ ] **Step 7: Verify overview + mtrees render on the live stack (epg)**
 
 On the `epg` host:
+
 ```bash
 cd ~/ppdd_exporter && git pull --ff-only
 docker compose -f docker-compose.server.yml restart grafana
 ```
+
 Hard-refresh Grafana. Expected:
+
 - **Systems at a glance:** exactly **1 row** (`diab-DD3410`) with Used %, Used, Total, Dedup x, CPU %, Alerts, Disks failed all populated on the same line.
 - **MTree detail:** exactly **2 rows** (`/data/col1/alfred`, `/data/col1/backup`), each with Logical/Physical/Dedup/Quota columns on one line.
 
@@ -346,9 +353,11 @@ If any stray column shows (e.g. an un-excluded `Time 7` or `source`), note its e
 - [ ] **Step 8: Verify replication tables on the mockdd demo**
 
 On a machine with the repo (laptop is fine — no appliance needed):
+
 ```bash
 docker compose up -d --build      # docker-compose.yml → mockdd
 ```
+
 Open `http://localhost:3000` → PowerProtect DD — Replication. Expected: "MTree replication
 contexts" and "File replication contexts" each show **one row per context** (mockdd fixtures
 `mtree-replications.json` / `file-replications.json`), all columns on one line, State column
@@ -370,6 +379,7 @@ zero series → "No data". Add an `or` fallback that emits `0` for every MTree, 
 quotas read as `0%` bars instead of a broken-looking panel.
 
 **Files:**
+
 - Modify: `grafana/dashboards/ppdd-mtrees.json` ("Quota utilization %" panel)
 
 - [ ] **Step 1: Change the query expr**
@@ -405,6 +415,7 @@ git commit -m "fix(grafana): quota utilization shows 0% instead of No data when 
 ## Task 4: CHANGELOG + full CI gate + final verification
 
 **Files:**
+
 - Modify: `CHANGELOG.md`
 
 - [ ] **Step 1: Add a CHANGELOG entry**
@@ -450,6 +461,7 @@ gh pr create --fill
 ## Self-Review
 
 **Spec coverage:**
+
 - Decision 1 (table joins, all 4 panels) → Task 2 (overview, mtrees, both replication tables). ✓
 - Decision 2 (`refresh`→on-load, all 5) → Task 1. ✓
 - Decision 3 (quota polish) → Task 3. ✓
