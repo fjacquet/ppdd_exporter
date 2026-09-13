@@ -22,6 +22,24 @@ All notable changes to this project are documented here. The format is based on
   yet still resolves to `false` — this repo's original shipped default — on a host that
   never exported the variable.
 
+## [1.2.2] - 2026-09-13
+
+### Changed
+
+- Go toolchain moved to 1.27.1; `golangci-lint` bumped to v2.13.2 and `goreleaser` to
+  v2.18.0 to match, alongside a `go get -u ./... && go mod tidy` refresh
+  (`golang.org/x/sync` 0.22.0 -> 0.23.0, `sirupsen/logrus` 1.10.0 -> 1.10.2,
+  `prometheus/client_model` 0.6.2 -> 0.6.3).
+- Dependabot auto-merge enabled for this repo, then hardened: the bot-actor guard now
+  reads `github.event.pull_request.user.login` instead of the spoofable
+  `github.actor`.
+
+### Fixed
+
+- `mkdocs build --strict` broke on three dead screenshot links (`overview.png`,
+  `capacity.png`, `health.png`) left in the compose-demo doc after the images
+  themselves were deleted; the links are removed.
+
 ## [1.0.0] - 2026-08-01
 
 ### Breaking
