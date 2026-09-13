@@ -60,13 +60,9 @@ Captured from the Compose demo, against `mockdd` fixtures (system `dd-prod-01`).
 
 Fleet KPI row plus the per-system summary table.
 
-![PowerProtect DD — Overview dashboard](../assets/screenshots/overview.png)
-
 ### Capacity & Dedup
 
 Filesystem headroom, dedup/compression factor, and GC activity.
-
-![PowerProtect DD — Capacity & Dedup dashboard](../assets/screenshots/capacity.png)
 
 ### MTrees
 
@@ -77,8 +73,6 @@ Per-MTree logical usage and quota utilization, with the detail table joined by M
 ### Health & Ops
 
 Failed disks, active alerts by severity/class, CPU, throughput, and per-collector health.
-
-![PowerProtect DD — Health & Ops dashboard](../assets/screenshots/health.png)
 
 ## What's wired
 
