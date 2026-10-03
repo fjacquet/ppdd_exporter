@@ -1,7 +1,7 @@
 # Installation
 
 Requires a reachable Dell PowerProtect DD appliance and a DD user with read access.
-To build from source you need a Go 1.26+ toolchain.
+To build from source you need a Go 1.27+ toolchain.
 
 ## With Homebrew (macOS)
 
